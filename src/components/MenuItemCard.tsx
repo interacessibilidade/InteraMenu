@@ -40,25 +40,57 @@ export function MenuItemCard({ item }: { item: MenuItem }) {
   const [librasOpen, setLibrasOpen] = useState(false);
   const { t, language } = useLanguage();
 
+  const [voicesReady, setVoicesReady] = useState(false);
+
   useEffect(() => {
-    if ("speechSynthesis" in window) {
-      window.speechSynthesis.getVoices();
-      window.speechSynthesis.onvoiceschanged = () => window.speechSynthesis.getVoices();
-    }
+    if (!("speechSynthesis" in window)) return;
+    const synth = window.speechSynthesis;
+
+    const loadVoices = () => {
+      const v = synth.getVoices();
+      if (v.length > 0) setVoicesReady(true);
+    };
+
+    loadVoices();
+    synth.onvoiceschanged = loadVoices;
+
+    return () => { synth.onvoiceschanged = null; };
   }, []);
+
+  function doSpeak(text: string, lang: string) {
+    const synth = window.speechSynthesis;
+    synth.cancel();
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = lang;
+    utterance.rate = 0.9;
+
+    const voice = findVoiceForLang(lang);
+    if (voice) {
+      utterance.voice = voice;
+      utterance.lang = voice.lang; // ensure lang matches chosen voice
+    }
+
+    synth.speak(utterance);
+  }
 
   function speakText(text: string) {
     if (!("speechSynthesis" in window)) return;
-    window.speechSynthesis.cancel();
     const targetLang = getAudioLang(language);
-    const utterance = new SpeechSynthesisUtterance(text);
-    utterance.lang = targetLang;
-    utterance.rate = 0.9;
 
-    const voice = findVoiceForLang(targetLang);
-    if (voice) utterance.voice = voice;
-
-    window.speechSynthesis.speak(utterance);
+    if (voicesReady) {
+      doSpeak(text, targetLang);
+    } else {
+      // Wait for voices to load (up to 3s)
+      const synth = window.speechSynthesis;
+      const prev = synth.onvoiceschanged;
+      const timeout = setTimeout(() => { doSpeak(text, targetLang); }, 3000);
+      synth.onvoiceschanged = () => {
+        clearTimeout(timeout);
+        setVoicesReady(true);
+        synth.onvoiceschanged = prev as any;
+        doSpeak(text, targetLang);
+      };
+    }
   }
 
   const audioText = item.audio_text || `${item.name}. ${item.description || ""} ${item.price} ${language === "pt" ? "reais" : language === "es" ? "reales" : language === "fr" ? "euros" : "dollars"}. ${item.ingredients || ""}`;
