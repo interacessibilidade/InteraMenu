@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useCallback, ReactNode } from "react";
+import { createContext, useContext, useState, useCallback, useMemo, type ReactNode, type Context } from "react";
 
 export type Language = "pt" | "en" | "es" | "fr";
 
@@ -7,6 +7,8 @@ interface LanguageContextType {
   setLanguage: (lang: Language) => void;
   t: (key: string) => string;
 }
+
+const defaultLanguage: Language = "pt";
 
 const translations: Record<Language, Record<string, string>> = {
   pt: {
@@ -112,7 +114,7 @@ const translations: Record<Language, Record<string, string>> = {
     "allergen.shellfish": "Mariscos",
     "accessibility.title": "Accesibilidad",
     "accessibility.increase_font": "Aumentar fuente",
-    "accessibility.decrease_font": "Disminuir fuente",
+    "accessibility.decrease_font": "Disminuir fonte",
     "accessibility.high_contrast": "Alto contraste",
     "accessibility.grayscale": "Escala de grises",
     "accessibility.dyslexia_font": "Fuente para dislexia",
@@ -170,27 +172,35 @@ const langAudioMap: Record<Language, string> = {
   fr: "fr-FR",
 };
 
-const LanguageContext = createContext<LanguageContextType | null>(null);
+const defaultLanguageContext: LanguageContextType = {
+  language: defaultLanguage,
+  setLanguage: () => undefined,
+  t: (key: string) => translations[defaultLanguage]?.[key] || key,
+};
+
+declare global {
+  var __lovableLanguageContext: Context<LanguageContextType> | undefined;
+}
+
+const LanguageContext = globalThis.__lovableLanguageContext ?? createContext<LanguageContextType>(defaultLanguageContext);
+
+globalThis.__lovableLanguageContext = LanguageContext;
 
 export function LanguageProvider({ children }: { children: ReactNode }) {
-  const [language, setLanguage] = useState<Language>("pt");
+  const [language, setLanguage] = useState<Language>(defaultLanguage);
 
   const t = useCallback(
-    (key: string) => translations[language]?.[key] || translations.pt[key] || key,
+    (key: string) => translations[language]?.[key] || translations[defaultLanguage]?.[key] || key,
     [language]
   );
 
-  return (
-    <LanguageContext.Provider value={{ language, setLanguage, t }}>
-      {children}
-    </LanguageContext.Provider>
-  );
+  const value = useMemo(() => ({ language, setLanguage, t }), [language, t]);
+
+  return <LanguageContext.Provider value={value}>{children}</LanguageContext.Provider>;
 }
 
 export function useLanguage() {
-  const ctx = useContext(LanguageContext);
-  if (!ctx) throw new Error("useLanguage must be used within LanguageProvider");
-  return ctx;
+  return useContext(LanguageContext);
 }
 
 export function getAudioLang(lang: Language) {
