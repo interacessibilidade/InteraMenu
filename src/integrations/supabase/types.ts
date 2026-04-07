@@ -14,7 +14,84 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      menu_items: {
+        Row: {
+          allergens: string[] | null
+          audio_text: string | null
+          category: Database["public"]["Enums"]["menu_category"]
+          created_at: string
+          description: string | null
+          id: string
+          image_alt: string | null
+          image_url: string | null
+          ingredients: string | null
+          is_available: boolean
+          libras_video_url: string | null
+          name: string
+          price: number
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          allergens?: string[] | null
+          audio_text?: string | null
+          category?: Database["public"]["Enums"]["menu_category"]
+          created_at?: string
+          description?: string | null
+          id?: string
+          image_alt?: string | null
+          image_url?: string | null
+          ingredients?: string | null
+          is_available?: boolean
+          libras_video_url?: string | null
+          name: string
+          price: number
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          allergens?: string[] | null
+          audio_text?: string | null
+          category?: Database["public"]["Enums"]["menu_category"]
+          created_at?: string
+          description?: string | null
+          id?: string
+          image_alt?: string | null
+          image_url?: string | null
+          ingredients?: string | null
+          is_available?: boolean
+          libras_video_url?: string | null
+          name?: string
+          price?: number
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      waiter_calls: {
+        Row: {
+          attended_at: string | null
+          created_at: string
+          id: string
+          status: string
+          table_number: number
+        }
+        Insert: {
+          attended_at?: string | null
+          created_at?: string
+          id?: string
+          status?: string
+          table_number: number
+        }
+        Update: {
+          attended_at?: string | null
+          created_at?: string
+          id?: string
+          status?: string
+          table_number?: number
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -23,7 +100,12 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      menu_category:
+        | "prato"
+        | "bebida"
+        | "sobremesa"
+        | "entrada"
+        | "acompanhamento"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +232,14 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      menu_category: [
+        "prato",
+        "bebida",
+        "sobremesa",
+        "entrada",
+        "acompanhamento",
+      ],
+    },
   },
 } as const
