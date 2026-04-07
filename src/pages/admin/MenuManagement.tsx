@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Plus, Trash2, Edit2, Bell, QrCode } from "lucide-react";
 import { Link } from "react-router-dom";
 import type { Database } from "@/integrations/supabase/types";
+import ImageUpload from "@/components/admin/ImageUpload";
 
 type MenuItem = Database["public"]["Tables"]["menu_items"]["Row"];
 type MenuInsert = Database["public"]["Tables"]["menu_items"]["Insert"];
@@ -190,14 +191,12 @@ export default function MenuManagement() {
                   ))}
                 </div>
               </div>
-              <div>
-                <label className={labelClass}>URL da Imagem</label>
-                <input className={inputClass} value={form.image_url || ""} onChange={(e) => setForm({ ...form, image_url: e.target.value })} />
-              </div>
-              <div>
-                <label className={labelClass}>Alt text da Imagem</label>
-                <input className={inputClass} value={form.image_alt || ""} onChange={(e) => setForm({ ...form, image_alt: e.target.value })} />
-              </div>
+              <ImageUpload
+                currentUrl={form.image_url || ""}
+                onUrlChange={(url) => setForm({ ...form, image_url: url })}
+                altText={form.image_alt || ""}
+                onAltChange={(alt) => setForm({ ...form, image_alt: alt })}
+              />
               <div>
                 <label className={labelClass}>Texto para Áudio</label>
                 <input className={inputClass} value={form.audio_text || ""} onChange={(e) => setForm({ ...form, audio_text: e.target.value })} placeholder="Deixe vazio para usar nome + ingredientes" />
