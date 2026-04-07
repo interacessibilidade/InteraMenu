@@ -36,7 +36,7 @@ export function AccessibilityToolbar() {
                 key={tool.label}
                 onClick={tool.action}
                 className={`flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium transition-colors
-                  ${(tool as any).isReset ? "bg-destructive/15 text-destructive hover:bg-destructive/25 font-semibold" : tool.active ? "bg-primary text-primary-foreground" : "hover:bg-secondary text-foreground"}`}
+                  ${(tool as any).isReset ? "bg-primary/15 text-primary hover:bg-primary/25 font-semibold" : tool.active ? "bg-primary text-primary-foreground" : "hover:bg-secondary text-foreground"}`}
                 aria-label={tool.label}
                 aria-pressed={tool.active}
               >
@@ -51,7 +51,7 @@ export function AccessibilityToolbar() {
       <button
         onClick={() => setOpen(!open)}
         className="w-14 h-14 rounded-full bg-primary text-primary-foreground shadow-lg flex items-center justify-center hover:scale-105 transition-transform focus:outline-none focus:ring-4 focus:ring-ring"
-        aria-label={open ? t("accessibility.close") : t("accessibility.open.description")}
+        aria-label={open ? "Fechar painel de opções de acessibilidade" : "Abrir painel de opções de acessibilidade"}
         aria-expanded={open}
       >
         <PersonStanding className="w-7 h-7" />
