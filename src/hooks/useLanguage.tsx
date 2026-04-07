@@ -12,7 +12,7 @@ const defaultLanguage: Language = "pt";
 
 const translations: Record<Language, Record<string, string>> = {
   pt: {
-    "header.title": "Cardápio Digital Acessível",
+    "header.title": "Cardápio Acessível",
     "header.table": "Mesa",
     "category.entrada": "Entradas",
     "category.prato": "Pratos Principais",
@@ -50,7 +50,7 @@ const translations: Record<Language, Record<string, string>> = {
     "language": "Idioma",
   },
   en: {
-    "header.title": "Accessible Digital Menu",
+    "header.title": "Accessible Menu",
     "header.table": "Table",
     "category.entrada": "Starters",
     "category.prato": "Main Courses",
@@ -88,7 +88,7 @@ const translations: Record<Language, Record<string, string>> = {
     "language": "Language",
   },
   es: {
-    "header.title": "Menú Digital Accesible",
+    "header.title": "Menú Accesible",
     "header.table": "Mesa",
     "category.entrada": "Entradas",
     "category.prato": "Platos Principales",
@@ -126,7 +126,7 @@ const translations: Record<Language, Record<string, string>> = {
     "language": "Idioma",
   },
   fr: {
-    "header.title": "Menu Numérique Accessible",
+    "header.title": "Menu Accessible",
     "header.table": "Table",
     "category.entrada": "Entrées",
     "category.prato": "Plats Principaux",

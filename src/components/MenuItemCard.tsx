@@ -19,7 +19,9 @@ export function MenuItemCard({ item }: { item: MenuItem }) {
     window.speechSynthesis.speak(utterance);
   }
 
-  const audioText = item.audio_text || `${item.name}. ${item.description || ""} ${item.price} reais. ${item.ingredients || ""}`;
+  const audioText = item.audio_text || `${item.name}. ${item.description || ""} ${item.price} ${language === "pt" ? "reais" : language === "es" ? "reales" : language === "fr" ? "euros" : "dollars"}. ${item.ingredients || ""}`;
+
+  const showLibras = language === "pt" && !!item.libras_video_url;
 
   return (
     <>
@@ -75,7 +77,7 @@ export function MenuItemCard({ item }: { item: MenuItem }) {
               <span>{t("audio")}</span>
             </button>
 
-            {item.libras_video_url && (
+            {showLibras && (
               <button
                 onClick={() => setLibrasOpen(true)}
                 className="flex-1 flex items-center justify-center gap-2 py-2.5 px-3 rounded-md bg-secondary text-secondary-foreground font-medium text-sm hover:bg-secondary/80 transition-colors focus:outline-none focus:ring-2 focus:ring-ring"
@@ -89,11 +91,11 @@ export function MenuItemCard({ item }: { item: MenuItem }) {
         </div>
       </article>
 
-      {item.libras_video_url && (
+      {showLibras && (
         <LibrasModal
           open={librasOpen}
           onClose={() => setLibrasOpen(false)}
-          videoUrl={item.libras_video_url}
+          videoUrl={item.libras_video_url!}
           itemName={item.name}
         />
       )}
