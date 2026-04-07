@@ -1,16 +1,17 @@
-import { useState, useEffect } from "react";
-import { Volume2, Hand, AlertTriangle } from "lucide-react";
+import { useState, useEffect, useCallback } from "react";
+import { Volume2, Pause, Play, Hand, AlertTriangle } from "lucide-react";
 import type { Database } from "@/integrations/supabase/types";
 import { LibrasModal } from "./LibrasModal";
 import { useLanguage, getAudioLang } from "@/hooks/useLanguage";
 
 type MenuItem = Database["public"]["Tables"]["menu_items"]["Row"];
 
+type AudioState = "idle" | "playing" | "paused";
+
 function findVoiceForLang(targetLang: string): SpeechSynthesisVoice | null {
   const voices = window.speechSynthesis.getVoices();
   const langPrefix = targetLang.split("-")[0];
 
-  // Keyword hints per language
   const keywords: Record<string, string[]> = {
     es: ["spanish", "español", "paulina", "jorge", "monica"],
     fr: ["french", "français", "thomas", "amelie", "marie"],
@@ -18,15 +19,12 @@ function findVoiceForLang(targetLang: string): SpeechSynthesisVoice | null {
     en: ["english", "samantha", "daniel", "alex"],
   };
 
-  // 1. Exact lang match
   const exact = voices.find((v) => v.lang === targetLang);
   if (exact) return exact;
 
-  // 2. Prefix match
   const prefix = voices.find((v) => v.lang.startsWith(langPrefix + "-"));
   if (prefix) return prefix;
 
-  // 3. Keyword match in voice name
   const hints = keywords[langPrefix] || [];
   const byName = voices.find((v) =>
     hints.some((kw) => v.name.toLowerCase().includes(kw))
@@ -38,6 +36,7 @@ function findVoiceForLang(targetLang: string): SpeechSynthesisVoice | null {
 
 export function MenuItemCard({ item }: { item: MenuItem }) {
   const [librasOpen, setLibrasOpen] = useState(false);
+  const [audioState, setAudioState] = useState<AudioState>("idle");
   const { t, language } = useLanguage();
 
   useEffect(() => {
@@ -47,10 +46,35 @@ export function MenuItemCard({ item }: { item: MenuItem }) {
     }
   }, []);
 
-  function speakText(text: string) {
+  // Reset state when speech ends or is cancelled externally
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (audioState !== "idle" && !window.speechSynthesis.speaking && !window.speechSynthesis.paused) {
+        setAudioState("idle");
+      }
+    }, 200);
+    return () => clearInterval(interval);
+  }, [audioState]);
+
+  const handleAudio = useCallback(() => {
     if (!("speechSynthesis" in window)) return;
+
+    if (audioState === "playing") {
+      window.speechSynthesis.pause();
+      setAudioState("paused");
+      return;
+    }
+
+    if (audioState === "paused") {
+      window.speechSynthesis.resume();
+      setAudioState("playing");
+      return;
+    }
+
+    // idle → start new
     window.speechSynthesis.cancel();
     const targetLang = getAudioLang(language);
+    const text = item.audio_text || `${item.name}. ${item.description || ""} ${item.price} ${language === "pt" ? "reais" : language === "es" ? "reales" : language === "fr" ? "euros" : "dollars"}. ${item.ingredients || ""}`;
     const utterance = new SpeechSynthesisUtterance(text);
     utterance.lang = targetLang;
     utterance.rate = 0.9;
@@ -58,10 +82,28 @@ export function MenuItemCard({ item }: { item: MenuItem }) {
     const voice = findVoiceForLang(targetLang);
     if (voice) utterance.voice = voice;
 
-    window.speechSynthesis.speak(utterance);
-  }
+    utterance.onend = () => setAudioState("idle");
+    utterance.onerror = () => setAudioState("idle");
 
-  const audioText = item.audio_text || `${item.name}. ${item.description || ""} ${item.price} ${language === "pt" ? "reais" : language === "es" ? "reales" : language === "fr" ? "euros" : "dollars"}. ${item.ingredients || ""}`;
+    window.speechSynthesis.speak(utterance);
+    setAudioState("playing");
+  }, [audioState, language, item]);
+
+  const audioLabel =
+    audioState === "playing"
+      ? "Pausar áudio"
+      : audioState === "paused"
+        ? "Retomar áudio"
+        : "Escutar o item de cardápio";
+
+  const audioButtonText =
+    audioState === "playing"
+      ? t("audio.pause") !== "audio.pause" ? t("audio.pause") : "Pausar"
+      : audioState === "paused"
+        ? t("audio.resume") !== "audio.resume" ? t("audio.resume") : "Retomar"
+        : t("audio");
+
+  const AudioIcon = audioState === "playing" ? Pause : audioState === "paused" ? Play : Volume2;
 
   const showLibras = language === "pt" && !!item.libras_video_url;
 
@@ -115,12 +157,12 @@ export function MenuItemCard({ item }: { item: MenuItem }) {
 
           <div className="flex gap-2 pt-1">
             <button
-              onClick={() => speakText(audioText)}
+              onClick={handleAudio}
               className="flex-1 flex items-center justify-center gap-2 py-2.5 px-3 rounded-md bg-secondary text-secondary-foreground font-medium text-sm hover:bg-secondary/80 transition-colors focus:outline-none focus:ring-2 focus:ring-ring"
-              aria-label={`Escutar descrição do item de cardápio ${item.name}`}
+              aria-label={audioLabel}
             >
-              <Volume2 className="w-4 h-4" aria-hidden="true" />
-              <span>{t("audio")}</span>
+              <AudioIcon className="w-4 h-4" aria-hidden="true" />
+              <span>{audioButtonText}</span>
             </button>
 
             {showLibras && (
