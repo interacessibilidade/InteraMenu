@@ -112,7 +112,7 @@ export default function Index() {
         )}
       </main>
 
-      <CallWaiterButton tableNumber={tableNumber} />
+      <CallWaiterButton tableNumber={tableNumber ?? 0} />
       <AccessibilityToolbar />
     </div>
   );

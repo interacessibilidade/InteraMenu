@@ -19,21 +19,23 @@ export function LanguageSelector() {
   const { language, setLanguage } = useLanguage();
 
   return (
-    <Select value={language} onValueChange={(v) => setLanguage(v as Language)}>
-      <SelectTrigger className="w-auto min-w-[140px] h-9 text-sm gap-2" aria-label="Language">
-        <Globe className="w-4 h-4 shrink-0" aria-hidden="true" />
-        <SelectValue />
-      </SelectTrigger>
-      <SelectContent>
-        {languages.map((l) => (
-          <SelectItem key={l.value} value={l.value}>
-            <span className="flex items-center gap-2">
-              <span aria-hidden="true">{l.flag}</span>
-              <span>{l.label}</span>
-            </span>
-          </SelectItem>
-        ))}
-      </SelectContent>
-    </Select>
+    <div role="group" aria-label="Opções de idioma do cardápio">
+      <Select value={language} onValueChange={(v) => setLanguage(v as Language)}>
+        <SelectTrigger className="w-auto min-w-[140px] h-9 text-sm gap-2" aria-label="Opções de idioma do cardápio">
+          <Globe className="w-4 h-4 shrink-0" aria-hidden="true" />
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent>
+          {languages.map((l) => (
+            <SelectItem key={l.value} value={l.value} tabIndex={0}>
+              <span className="flex items-center gap-2">
+                <span aria-hidden="true">{l.flag}</span>
+                <span>{l.label}</span>
+              </span>
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+    </div>
   );
 }

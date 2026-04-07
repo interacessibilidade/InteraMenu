@@ -13,9 +13,17 @@ export function MenuItemCard({ item }: { item: MenuItem }) {
   function speakText(text: string) {
     if (!("speechSynthesis" in window)) return;
     window.speechSynthesis.cancel();
+    const targetLang = getAudioLang(language);
     const utterance = new SpeechSynthesisUtterance(text);
-    utterance.lang = getAudioLang(language);
+    utterance.lang = targetLang;
     utterance.rate = 0.9;
+
+    // Try to find a voice that matches the target language
+    const voices = window.speechSynthesis.getVoices();
+    const match = voices.find((v) => v.lang === targetLang) ||
+      voices.find((v) => v.lang.startsWith(targetLang.split("-")[0]));
+    if (match) utterance.voice = match;
+
     window.speechSynthesis.speak(utterance);
   }
 
@@ -71,7 +79,7 @@ export function MenuItemCard({ item }: { item: MenuItem }) {
             <button
               onClick={() => speakText(audioText)}
               className="flex-1 flex items-center justify-center gap-2 py-2.5 px-3 rounded-md bg-secondary text-secondary-foreground font-medium text-sm hover:bg-secondary/80 transition-colors focus:outline-none focus:ring-2 focus:ring-ring"
-              aria-label={`${t("audio")} - ${item.name}`}
+              aria-label={`${t("audio.description")} ${item.name}`}
             >
               <Volume2 className="w-4 h-4" aria-hidden="true" />
               <span>{t("audio")}</span>
@@ -81,7 +89,7 @@ export function MenuItemCard({ item }: { item: MenuItem }) {
               <button
                 onClick={() => setLibrasOpen(true)}
                 className="flex-1 flex items-center justify-center gap-2 py-2.5 px-3 rounded-md bg-secondary text-secondary-foreground font-medium text-sm hover:bg-secondary/80 transition-colors focus:outline-none focus:ring-2 focus:ring-ring"
-                aria-label={`${t("libras")} - ${item.name}`}
+                aria-label={`${t("libras.description")} ${item.name}`}
               >
                 <Hand className="w-4 h-4" aria-hidden="true" />
                 <span>{t("libras")}</span>
