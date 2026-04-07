@@ -58,7 +58,8 @@ export default function Index() {
     .filter((g) => !allowedCategories || allowedCategories.includes(g.category));
 
   return (
-    <div className="min-h-screen bg-background pb-36">
+    <div className="min-h-screen bg-background pb-8" lang="pt-BR">
+      {/* Header */}
       <header className="sticky top-0 z-30 bg-background/95 backdrop-blur border-b border-border">
         <div className="container py-3 flex items-center gap-3">
           <div className="w-9 h-9 rounded-full bg-primary flex items-center justify-center">
@@ -74,8 +75,12 @@ export default function Index() {
         </div>
       </header>
 
-      <div className="container pt-4 pb-2">
-        <CategoryFilter selected={filter} onChange={setFilter} />
+      {/* Sticky categories + waiter call */}
+      <div className="sticky top-[57px] z-20 bg-background/95 backdrop-blur border-b border-border">
+        <div className="container py-2 space-y-2">
+          <CategoryFilter selected={filter} onChange={setFilter} />
+          <CallWaiterButton tableNumber={tableNumber ?? 0} />
+        </div>
       </div>
 
       <main className="container py-4" role="main">
@@ -112,7 +117,6 @@ export default function Index() {
         )}
       </main>
 
-      <CallWaiterButton tableNumber={tableNumber ?? 0} />
       <AccessibilityToolbar />
     </div>
   );
