@@ -90,8 +90,12 @@ export function MenuItemCard({ item }: { item: MenuItem }) {
             </span>
           </div>
 
+          {item.description && (
+            <p className="text-sm text-foreground/80 leading-relaxed">{item.description}</p>
+          )}
+
           {item.ingredients && (
-            <p className="text-sm text-muted-foreground leading-relaxed">{item.ingredients}</p>
+            <p className="text-xs text-muted-foreground leading-relaxed">{item.ingredients}</p>
           )}
 
           {item.allergens && item.allergens.length > 0 && (

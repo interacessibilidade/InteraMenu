@@ -172,6 +172,10 @@ export default function MenuManagement() {
                 <input className={inputClass} type="number" value={form.sort_order} onChange={(e) => setForm({ ...form, sort_order: parseInt(e.target.value) || 0 })} />
               </div>
               <div className="sm:col-span-2">
+                <label className={labelClass}>Descrição</label>
+                <textarea className={inputClass} rows={2} value={form.description || ""} onChange={(e) => setForm({ ...form, description: e.target.value })} placeholder="Descrição do prato" />
+              </div>
+              <div className="sm:col-span-2">
                 <label className={labelClass}>Ingredientes</label>
                 <textarea className={inputClass} rows={2} value={form.ingredients || ""} onChange={(e) => setForm({ ...form, ingredients: e.target.value })} />
               </div>
