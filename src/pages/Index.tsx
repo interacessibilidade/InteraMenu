@@ -9,6 +9,7 @@ import { LanguageSelector } from "@/components/LanguageSelector";
 import { CategoryFilter, type CategoryFilterValue } from "@/components/CategoryFilter";
 import { UtensilsCrossed } from "lucide-react";
 import { useLanguage } from "@/hooks/useLanguage";
+import { useMenuTranslation } from "@/hooks/useMenuTranslation";
 import type { Database } from "@/integrations/supabase/types";
 
 type MenuCategory = Database["public"]["Enums"]["menu_category"];
@@ -43,13 +44,15 @@ export default function Index() {
     },
   });
 
+  const { getTranslated, translating } = useMenuTranslation(items);
+
   const allowedCategories = filterToCategories[filter];
 
   const grouped = categoryOrder
     .map((cat) => ({
       category: cat,
       label: t(`category.${cat}`),
-      items: (items || []).filter((i) => i.category === cat),
+      items: (items || []).filter((i) => i.category === cat).map(getTranslated),
     }))
     .filter((g) => g.items.length > 0)
     .filter((g) => !allowedCategories || allowedCategories.includes(g.category));
@@ -62,7 +65,7 @@ export default function Index() {
             <UtensilsCrossed className="w-4 h-4 text-primary-foreground" aria-hidden="true" />
           </div>
           <div className="flex-1 min-w-0">
-            <h1 className="text-base font-bold text-foreground leading-tight">{t("header.title")}</h1>
+            <h1 className="text-sm font-bold text-foreground leading-tight">{t("header.title")}</h1>
             {tableNumber && (
               <p className="text-xs text-muted-foreground font-medium">{t("header.table")} {tableNumber}</p>
             )}
@@ -76,7 +79,7 @@ export default function Index() {
       </div>
 
       <main className="container py-4" role="main">
-        {isLoading ? (
+        {isLoading || translating ? (
           <div className="space-y-4">
             {[1, 2, 3].map((i) => (
               <div key={i} className="h-48 bg-muted rounded-lg animate-pulse" />
