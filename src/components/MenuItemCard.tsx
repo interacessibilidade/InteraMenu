@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Volume2, Hand, AlertTriangle } from "lucide-react";
 import type { Database } from "@/integrations/supabase/types";
 import { LibrasModal } from "./LibrasModal";
@@ -9,6 +9,14 @@ type MenuItem = Database["public"]["Tables"]["menu_items"]["Row"];
 export function MenuItemCard({ item }: { item: MenuItem }) {
   const [librasOpen, setLibrasOpen] = useState(false);
   const { t, language } = useLanguage();
+
+  // Preload voices so they're available when user clicks Audio
+  useEffect(() => {
+    if ("speechSynthesis" in window) {
+      window.speechSynthesis.getVoices();
+      window.speechSynthesis.onvoiceschanged = () => window.speechSynthesis.getVoices();
+    }
+  }, []);
 
   function speakText(text: string) {
     if (!("speechSynthesis" in window)) return;
