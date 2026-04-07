@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Accessibility, Plus, Minus, Eye, Palette, Type, RotateCcw } from "lucide-react";
+import { PersonStanding, Plus, Minus, Eye, Palette, Type, RotateCcw } from "lucide-react";
 import { useAccessibility } from "@/hooks/useAccessibility";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -52,7 +52,7 @@ export function AccessibilityToolbar() {
         aria-label={open ? "Fechar acessibilidade" : "Abrir acessibilidade"}
         aria-expanded={open}
       >
-        <Accessibility className="w-7 h-7" />
+        <PersonStanding className="w-7 h-7" />
       </button>
     </div>
   );
