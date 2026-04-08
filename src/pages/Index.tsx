@@ -28,7 +28,7 @@ export default function Index() {
   const [searchParams] = useSearchParams();
   const mesa = searchParams.get("mesa");
   const tableNumber = mesa ? parseInt(mesa, 10) : null;
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const [filter, setFilter] = useState<CategoryFilterValue>("all");
 
   const { data: items, isLoading } = useQuery({
