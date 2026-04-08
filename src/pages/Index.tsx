@@ -28,7 +28,7 @@ export default function Index() {
   const [searchParams] = useSearchParams();
   const mesa = searchParams.get("mesa");
   const tableNumber = mesa ? parseInt(mesa, 10) : null;
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const [filter, setFilter] = useState<CategoryFilterValue>("all");
 
   const { data: items, isLoading } = useQuery({
@@ -58,7 +58,7 @@ export default function Index() {
     .filter((g) => !allowedCategories || allowedCategories.includes(g.category));
 
   return (
-    <div className="min-h-screen bg-background pb-8" lang="pt-BR">
+    <div className="min-h-screen bg-background pb-8" lang={language === "pt" ? "pt-BR" : language === "en" ? "en-US" : language === "es" ? "es-ES" : "fr-FR"}>
       {/* Header */}
       <header className="sticky top-0 z-30 bg-background/95 backdrop-blur border-b border-border">
         <div className="container py-3 flex items-center gap-3">
