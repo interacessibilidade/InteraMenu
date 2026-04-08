@@ -146,20 +146,19 @@ export default function MenuManagement() {
     <div className="min-h-screen bg-background">
       <header className="sticky top-0 z-30 bg-background/95 backdrop-blur border-b border-border">
         <div className="container py-4 flex items-center gap-3 flex-wrap">
-          <h1 className="text-xl font-extrabold text-foreground">Gestão do Cardápio</h1>
+          <Link to="/admin" className="p-2 rounded-md hover:bg-secondary transition-colors" aria-label="Voltar para gestão do cardápio">
+            <ArrowLeft className="w-5 h-5" />
+          </Link>
+          <h1 className="text-xl font-extrabold text-foreground">Cadastro de Itens</h1>
           <div className="ml-auto flex gap-2">
-            <Link
-              to="/admin/painel"
-              className="flex items-center gap-2 px-4 py-2 rounded-md bg-secondary text-secondary-foreground font-medium text-sm hover:bg-secondary/80 transition-colors"
+            <button
+              onClick={() => { setShowForm(true); setEditingId(null); setForm(emptyForm); setAutoAudio(true); }}
+              className="flex items-center gap-2 px-4 py-2 rounded-md bg-primary text-primary-foreground font-medium text-sm hover:bg-primary/90 transition-colors"
             >
-              <Bell className="w-4 h-4" /> Painel
-            </Link>
-            <Link
-              to="/admin/qrcode"
-              className="flex items-center gap-2 px-4 py-2 rounded-md bg-secondary text-secondary-foreground font-medium text-sm hover:bg-secondary/80 transition-colors"
-            >
-              <QrCode className="w-4 h-4" /> QR Codes
-            </Link>
+              <Plus className="w-4 h-4" /> Novo Item
+            </button>
+          </div>
+        </div>
             <button
               onClick={() => { setShowForm(true); setEditingId(null); setForm(emptyForm); setAutoAudio(true); }}
               className="flex items-center gap-2 px-4 py-2 rounded-md bg-primary text-primary-foreground font-medium text-sm hover:bg-primary/90 transition-colors"
