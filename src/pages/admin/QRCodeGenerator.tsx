@@ -28,7 +28,7 @@ export default function QRCodeGenerator() {
     <div className="min-h-screen bg-background">
       <header className="sticky top-0 z-30 bg-background/95 backdrop-blur border-b border-border print:hidden">
         <div className="container py-4 flex items-center gap-3">
-          <Link to="/admin/gestao" className="p-2 rounded-md hover:bg-secondary transition-colors" aria-label="Voltar">
+          <Link to="/admin" className="p-2 rounded-md hover:bg-secondary transition-colors" aria-label="Voltar para gestão do cardápio">
             <ArrowLeft className="w-5 h-5" />
           </Link>
           <h1 className="text-xl font-extrabold text-foreground">Gerador de QR Codes</h1>

@@ -97,7 +97,7 @@ export default function WaiterPanel() {
     <div className="min-h-screen bg-background">
       <header className="sticky top-0 z-30 bg-background/95 backdrop-blur border-b border-border">
         <div className="container py-4 flex items-center gap-3">
-          <Link to="/admin/gestao" className="p-2 rounded-md hover:bg-secondary transition-colors" aria-label="Voltar para gestão">
+          <Link to="/admin" className="p-2 rounded-md hover:bg-secondary transition-colors" aria-label="Voltar para gestão do cardápio">
             <ArrowLeft className="w-5 h-5" />
           </Link>
           <Bell className="w-6 h-6 text-primary" aria-hidden="true" />

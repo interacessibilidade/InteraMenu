@@ -6,6 +6,7 @@ import { AccessibilityProvider } from "@/hooks/useAccessibility";
 import { LanguageProvider } from "@/hooks/useLanguage";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
+import AdminDashboard from "./pages/admin/AdminDashboard";
 import WaiterPanel from "./pages/admin/WaiterPanel";
 import MenuManagement from "./pages/admin/MenuManagement";
 import QRCodeGenerator from "./pages/admin/QRCodeGenerator";
@@ -22,6 +23,7 @@ const App = () => (
           <BrowserRouter>
             <Routes>
               <Route path="/" element={<Index />} />
+              <Route path="/admin" element={<AdminDashboard />} />
               <Route path="/admin/painel" element={<WaiterPanel />} />
               <Route path="/admin/gestao" element={<MenuManagement />} />
               <Route path="/admin/qrcode" element={<QRCodeGenerator />} />

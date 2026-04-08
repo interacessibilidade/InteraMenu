@@ -59,7 +59,7 @@ export default function WaiterReport() {
     <div className="min-h-screen bg-background">
       <header className="sticky top-0 z-30 bg-background/95 backdrop-blur border-b border-border">
         <div className="container py-4 flex items-center gap-3">
-          <Link to="/admin/painel" className="p-2 rounded-md hover:bg-secondary transition-colors" aria-label="Voltar para painel">
+          <Link to="/admin" className="p-2 rounded-md hover:bg-secondary transition-colors" aria-label="Voltar para gestão do cardápio">
             <ArrowLeft className="w-5 h-5" />
           </Link>
           <BarChart3 className="w-6 h-6 text-primary" aria-hidden="true" />

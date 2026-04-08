@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Plus, Trash2, Edit2, Bell, QrCode } from "lucide-react";
+import { Plus, Trash2, Edit2, ArrowLeft } from "lucide-react";
 import { Link } from "react-router-dom";
 import type { Database } from "@/integrations/supabase/types";
 import ImageUpload from "@/components/admin/ImageUpload";
@@ -146,20 +146,11 @@ export default function MenuManagement() {
     <div className="min-h-screen bg-background">
       <header className="sticky top-0 z-30 bg-background/95 backdrop-blur border-b border-border">
         <div className="container py-4 flex items-center gap-3 flex-wrap">
-          <h1 className="text-xl font-extrabold text-foreground">Gestão do Cardápio</h1>
+          <Link to="/admin" className="p-2 rounded-md hover:bg-secondary transition-colors" aria-label="Voltar para gestão do cardápio">
+            <ArrowLeft className="w-5 h-5" />
+          </Link>
+          <h1 className="text-xl font-extrabold text-foreground">Cadastro de Itens</h1>
           <div className="ml-auto flex gap-2">
-            <Link
-              to="/admin/painel"
-              className="flex items-center gap-2 px-4 py-2 rounded-md bg-secondary text-secondary-foreground font-medium text-sm hover:bg-secondary/80 transition-colors"
-            >
-              <Bell className="w-4 h-4" /> Painel
-            </Link>
-            <Link
-              to="/admin/qrcode"
-              className="flex items-center gap-2 px-4 py-2 rounded-md bg-secondary text-secondary-foreground font-medium text-sm hover:bg-secondary/80 transition-colors"
-            >
-              <QrCode className="w-4 h-4" /> QR Codes
-            </Link>
             <button
               onClick={() => { setShowForm(true); setEditingId(null); setForm(emptyForm); setAutoAudio(true); }}
               className="flex items-center gap-2 px-4 py-2 rounded-md bg-primary text-primary-foreground font-medium text-sm hover:bg-primary/90 transition-colors"
