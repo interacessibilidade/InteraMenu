@@ -14,14 +14,14 @@ import type { Database } from "@/integrations/supabase/types";
 
 type MenuCategory = Database["public"]["Enums"]["menu_category"];
 
-const categoryOrder: MenuCategory[] = ["entrada", "prato", "acompanhamento", "bebida", "sobremesa"];
+const categoryOrder: MenuCategory[] = ["entrada", "prato", "acompanhamento", "bebida", "sobremesa", "outros"];
 
 const filterToCategories: Record<CategoryFilterValue, MenuCategory[] | null> = {
   all: null,
   prato: ["prato"],
   bebida: ["bebida"],
   sobremesa: ["sobremesa"],
-  outros: ["entrada", "acompanhamento"],
+  outros: ["entrada", "acompanhamento", "outros"],
 };
 
 export default function Index() {

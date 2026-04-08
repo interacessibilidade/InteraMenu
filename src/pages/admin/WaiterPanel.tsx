@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Bell, CheckCircle, Clock, ArrowLeft } from "lucide-react";
+import { Bell, CheckCircle, Clock, ArrowLeft, BarChart3 } from "lucide-react";
 import { Link } from "react-router-dom";
 import type { Database } from "@/integrations/supabase/types";
 
@@ -102,7 +102,10 @@ export default function WaiterPanel() {
           </Link>
           <Bell className="w-6 h-6 text-primary" aria-hidden="true" />
           <h1 className="text-xl font-extrabold text-foreground">Painel do Garçom</h1>
-          <span className="ml-auto bg-primary text-primary-foreground text-sm font-bold px-3 py-1 rounded-full">
+          <Link to="/admin/relatorio" className="ml-auto flex items-center gap-2 px-4 py-2 rounded-md bg-secondary text-secondary-foreground font-medium text-sm hover:bg-secondary/80 transition-colors">
+            <BarChart3 className="w-4 h-4" /> Relatório
+          </Link>
+          <span className="bg-primary text-primary-foreground text-sm font-bold px-3 py-1 rounded-full">
             {calls.length} chamado{calls.length !== 1 ? "s" : ""}
           </span>
         </div>

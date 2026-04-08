@@ -9,6 +9,7 @@ import NotFound from "./pages/NotFound";
 import WaiterPanel from "./pages/admin/WaiterPanel";
 import MenuManagement from "./pages/admin/MenuManagement";
 import QRCodeGenerator from "./pages/admin/QRCodeGenerator";
+import WaiterReport from "./pages/admin/WaiterReport";
 
 const queryClient = new QueryClient();
 
@@ -24,6 +25,7 @@ const App = () => (
               <Route path="/admin/painel" element={<WaiterPanel />} />
               <Route path="/admin/gestao" element={<MenuManagement />} />
               <Route path="/admin/qrcode" element={<QRCodeGenerator />} />
+              <Route path="/admin/relatorio" element={<WaiterReport />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>
