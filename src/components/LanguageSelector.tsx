@@ -5,12 +5,10 @@ import { Globe, ChevronDown } from "lucide-react";
 const languages: { value: Language; label: string; flag: string }[] = [
   { value: "pt", label: "Português", flag: "🇧🇷" },
   { value: "en", label: "English", flag: "🇺🇸" },
-  { value: "es", label: "Español", flag: "🇪🇸" },
-  { value: "fr", label: "Français", flag: "🇫🇷" },
 ];
 
 export function LanguageSelector() {
-  const { language, setLanguage } = useLanguage();
+  const { language, setLanguage, t } = useLanguage();
   const [open, setOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const firstItemRef = useRef<HTMLButtonElement>(null);
@@ -34,13 +32,14 @@ export function LanguageSelector() {
   }, []);
 
   return (
-    <div ref={containerRef} className="relative" role="group" aria-label="Opções de idioma do cardápio">
+    <div ref={containerRef} className="relative" role="group" aria-label={t("language.options")}>
       <button
+        type="button"
         onClick={() => setOpen(!open)}
-        className="flex items-center gap-2 h-9 px-3 rounded-md border border-input bg-background text-sm font-medium hover:bg-secondary transition-colors focus:outline-none focus:ring-2 focus:ring-ring"
+        className="flex items-center gap-2 h-9 px-3 rounded-md border border-input bg-background text-sm font-medium hover:bg-secondary transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
         aria-haspopup="listbox"
         aria-expanded={open}
-        aria-label="Opções de idioma do cardápio"
+        aria-label={`${t("language.options")}: ${current.label}`}
       >
         <Globe className="w-4 h-4 shrink-0" aria-hidden="true" />
         <span aria-hidden="true">{current.flag}</span>
@@ -51,21 +50,22 @@ export function LanguageSelector() {
       {open && (
         <div
           role="listbox"
-          aria-label="Selecionar idioma"
+          aria-label={t("language.select")}
           className="absolute right-0 top-full mt-1 w-48 bg-popover border border-border rounded-md shadow-lg py-1 z-50"
         >
           {languages.map((l, i) => (
             <button
+              type="button"
               key={l.value}
               ref={i === 0 ? firstItemRef : undefined}
               role="option"
               aria-selected={language === l.value}
-              tabIndex={0}
+              aria-label={`${t("language")}: ${l.label}`}
               onClick={() => {
                 setLanguage(l.value);
                 setOpen(false);
               }}
-              className={`w-full flex items-center gap-2 px-3 py-2 text-sm transition-colors focus:outline-none focus:bg-accent focus:text-accent-foreground
+              className={`w-full flex items-center gap-2 px-3 py-2 text-sm transition-colors focus-visible:outline-none focus-visible:bg-accent focus-visible:text-accent-foreground
                 ${language === l.value ? "bg-accent text-accent-foreground font-semibold" : "text-popover-foreground hover:bg-secondary"}`}
             >
               <span aria-hidden="true">{l.flag}</span>

@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { ArrowLeft, BarChart3, Calendar } from "lucide-react";
+import { ArrowLeft, BarChart3, Calendar, Printer } from "lucide-react";
 import { Link } from "react-router-dom";
 
 interface CallRow {
@@ -53,6 +53,7 @@ export default function WaiterReport() {
     attended.length > 0
       ? (attended.reduce((sum, c) => sum + (new Date(c.attended_at!).getTime() - new Date(c.created_at).getTime()), 0) / attended.length / 60000).toFixed(1)
       : "—";
+  const handlePrint = () => window.print();
 
   return (
     <div className="min-h-screen bg-background">
@@ -63,12 +64,21 @@ export default function WaiterReport() {
           </Link>
           <BarChart3 className="w-6 h-6 text-primary" aria-hidden="true" />
           <h1 className="text-xl font-extrabold text-foreground">Relatório de Atendimento</h1>
+          <button
+            type="button"
+            onClick={handlePrint}
+            className="ml-auto flex items-center gap-2 px-4 py-2 rounded-md bg-primary text-primary-foreground font-medium text-sm print:hidden"
+            aria-label="Imprimir relatório de atendimento"
+          >
+            <Printer className="w-4 h-4" aria-hidden="true" />
+            Imprimir relatório
+          </button>
         </div>
       </header>
 
       <main className="container py-6 space-y-6">
         {/* Filter */}
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 print:hidden">
           <Calendar className="w-5 h-5 text-muted-foreground" aria-hidden="true" />
           <label htmlFor="date-filter" className="text-sm font-semibold text-foreground">Data:</label>
           <input

@@ -7,6 +7,7 @@ import { toast } from "sonner";
 export function CallWaiterButton({ tableNumber }: { tableNumber: number | null }) {
   const [status, setStatus] = useState<"idle" | "loading" | "sent">("idle");
   const { t } = useLanguage();
+  const buttonText = status === "loading" ? t("waiter.calling") : status === "sent" ? t("waiter.called") : t("waiter.call");
 
   const handleCall = async () => {
     if (!tableNumber || status === "loading") return;
@@ -39,25 +40,27 @@ export function CallWaiterButton({ tableNumber }: { tableNumber: number | null }
 
   return (
     <button
+      type="button"
       onClick={handleCall}
       disabled={status === "loading" || status === "sent" || !tableNumber}
-      className={`w-full flex items-center justify-center gap-3 px-4 py-3 rounded-lg font-bold text-base transition-colors focus:outline-none focus:ring-4 focus:ring-ring
+      className={`w-full flex items-center justify-center gap-3 px-4 py-3 rounded-lg font-bold text-base transition-colors focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-80
         ${status === "sent"
           ? "bg-success text-success-foreground"
           : "bg-warning text-warning-foreground"
         }`}
-      aria-label={status === "sent" ? t("waiter.called") : tableNumber ? `${t("waiter.call.table")} ${tableNumber}` : t("waiter.call")}
+      aria-label={buttonText}
       aria-live="polite"
+      aria-busy={status === "loading"}
     >
       {status === "sent" ? (
         <>
           <Check className="w-5 h-5" aria-hidden="true" />
-          {t("waiter.called")}
+          {buttonText}
         </>
       ) : (
         <>
           <Bell className="w-5 h-5" aria-hidden="true" />
-          {tableNumber ? `${t("waiter.call.table")} ${tableNumber}` : t("waiter.call")}
+          {buttonText}
         </>
       )}
     </button>

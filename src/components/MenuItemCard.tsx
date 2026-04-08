@@ -9,7 +9,7 @@ type MenuItem = Database["public"]["Tables"]["menu_items"]["Row"];
 
 const audioCurrencyLabels: Record<Language, string> = {
   pt: "reais",
-  en: "dollars",
+  en: "Brazilian reais",
   es: "reales",
   fr: "euros",
 };
@@ -42,22 +42,26 @@ export function MenuItemCard({ item }: { item: MenuItem }) {
 
   const showLibras = language === "pt" && !!item.libras_video_url;
   const audioButtonText = !isSupported
-    ? "Áudio indisponível"
+    ? t("audio.unavailable")
     : audioState === "playing"
-      ? "Pausar áudio"
+      ? t("audio.pause")
       : audioState === "paused"
-        ? "Retomar áudio"
-        : "Ouvir descrição";
+        ? t("audio.resume")
+        : t("audio.play");
   const audioStatusText = !isSupported
-    ? "Leitura por voz indisponível neste navegador."
+    ? t("audio.status.unavailable")
     : audioState === "playing"
-      ? "Áudio em reprodução."
+      ? t("audio.status.playing")
       : audioState === "paused"
-        ? "Áudio pausado."
-        : "Áudio pronto para reprodução.";
+        ? t("audio.status.paused")
+        : t("audio.status.ready");
   const audioAriaLabel = !isSupported
-    ? `Leitura por voz indisponível para o item ${item.name}`
-    : `${audioButtonText} do item de cardápio ${item.name}`;
+    ? t("audio.aria.unavailable")
+    : audioState === "playing"
+      ? t("audio.aria.pause")
+      : audioState === "paused"
+        ? t("audio.aria.resume")
+        : t("audio.aria.listen");
   const audioStatusId = `menu-item-audio-status-${item.id}`;
 
   return (
@@ -116,7 +120,7 @@ export function MenuItemCard({ item }: { item: MenuItem }) {
               className="flex-1 flex items-center justify-center gap-2 py-2.5 px-3 rounded-md bg-secondary text-secondary-foreground font-medium text-sm hover:bg-secondary/80 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60"
               aria-label={audioAriaLabel}
               aria-describedby={audioStatusId}
-              aria-pressed={audioState !== "idle"}
+              aria-pressed={audioState === "playing"}
             >
               {audioState === "playing" ? (
                 <Pause className="w-4 h-4" aria-hidden="true" />
@@ -134,8 +138,8 @@ export function MenuItemCard({ item }: { item: MenuItem }) {
               <button
                 type="button"
                 onClick={() => setLibrasOpen(true)}
-                className="flex-1 flex items-center justify-center gap-2 py-2.5 px-3 rounded-md bg-secondary text-secondary-foreground font-medium text-sm hover:bg-secondary/80 transition-colors focus:outline-none focus:ring-2 focus:ring-ring"
-                aria-label={`Ver tradução em Libras do item ${item.name}`}
+                className="flex-1 flex items-center justify-center gap-2 py-2.5 px-3 rounded-md bg-secondary text-secondary-foreground font-medium text-sm hover:bg-secondary/80 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                aria-label={`${t("libras.description")} ${item.name}`}
               >
                 <Hand className="w-4 h-4" aria-hidden="true" />
                 <span>{t("libras")}</span>

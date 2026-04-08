@@ -51,14 +51,20 @@ export default function QRCodeGenerator() {
           </div>
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
           {tables.map((num) => {
             const url = `${baseUrl}/?mesa=${num}`;
             return (
-              <div key={num} className="bg-card border border-border rounded-lg p-4 flex flex-col items-center gap-3 print:break-inside-avoid">
-                <QRCodeSVG value={url} size={140} level="M" bgColor="transparent" fgColor="currentColor" className="text-foreground" />
-                <p className="text-xl font-extrabold text-foreground">Mesa {num}</p>
-                <p className="text-xs text-muted-foreground break-all text-center">{url}</p>
+              <div key={num} className="bg-card text-card-foreground border border-border rounded-2xl p-5 flex flex-col items-center gap-4 text-center shadow-sm print:break-inside-avoid">
+                <div className="rounded-xl border border-border bg-background p-3 text-foreground">
+                  <QRCodeSVG value={url} size={160} level="M" bgColor="transparent" fgColor="currentColor" className="text-foreground" />
+                </div>
+                <div className="space-y-2">
+                  <p className="text-2xl font-extrabold text-foreground">Mesa {num}</p>
+                  <p className="max-w-[18rem] text-sm font-medium leading-relaxed text-foreground">
+                    Aproxime o celular para abrir o cardápio acessível com áudio e Libras.
+                  </p>
+                </div>
               </div>
             );
           })}
