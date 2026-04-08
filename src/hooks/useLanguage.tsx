@@ -52,6 +52,7 @@ const translations: Record<Language, Record<string, string>> = {
     "waiter.call.table": "Chamar Garçom — Mesa",
     "waiter.called": "Garçom chamado!",
     "waiter.calling": "Chamando...",
+    "waiter.already_called": "Garçom já foi chamado para esta mesa.",
     "language": "Idioma",
   },
   en: {
@@ -95,6 +96,7 @@ const translations: Record<Language, Record<string, string>> = {
     "waiter.call.table": "Call Waiter — Table",
     "waiter.called": "Waiter called!",
     "waiter.calling": "Calling...",
+    "waiter.already_called": "Waiter has already been called for this table.",
     "language": "Language",
   },
   es: {
@@ -138,6 +140,7 @@ const translations: Record<Language, Record<string, string>> = {
     "waiter.call.table": "Llamar Camarero — Mesa",
     "waiter.called": "¡Camarero llamado!",
     "waiter.calling": "Llamando...",
+    "waiter.already_called": "El camarero ya ha sido llamado para esta mesa.",
     "language": "Idioma",
   },
   fr: {
@@ -181,6 +184,7 @@ const translations: Record<Language, Record<string, string>> = {
     "waiter.call.table": "Appeler Serveur — Table",
     "waiter.called": "Serveur appelé !",
     "waiter.calling": "Appel en cours...",
+    "waiter.already_called": "Le serveur a déjà été appelé pour cette table.",
     "language": "Langue",
   },
 };
