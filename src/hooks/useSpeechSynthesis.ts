@@ -27,13 +27,16 @@ let activeItemId: string | null = null;
 let speechRequestToken = 0;
 let voicesPromise: Promise<SpeechSynthesisVoice[]> | null = null;
 
+// For mobile resume workaround: store the text/position info
+let pausedOptions: UseSpeechSynthesisOptions | null = null;
+let pausedCharIndex = 0;
+
 function isSpeechSupported() {
   return typeof window !== "undefined" && "speechSynthesis" in window && "SpeechSynthesisUtterance" in window;
 }
 
 function emitSpeechStatus(detail: SpeechStatusDetail) {
   if (!isSpeechSupported()) return;
-
   window.dispatchEvent(new CustomEvent<SpeechStatusDetail>(SPEECH_STATUS_EVENT, { detail }));
 }
 
@@ -108,6 +111,8 @@ function getSpeechStateForItem(itemId: string): SpeechPlaybackState {
 
 function clearSpeechState() {
   activeItemId = null;
+  pausedOptions = null;
+  pausedCharIndex = 0;
   emitSpeechStatus({ activeItemId: null, state: "idle" });
 }
 
@@ -156,57 +161,72 @@ async function ensureVoicesLoaded(): Promise<SpeechSynthesisVoice[]> {
   return voicesPromise;
 }
 
-async function speakText({ itemId, text, lang, fallbackLang = "en-US" }: UseSpeechSynthesisOptions) {
-  if (!isSpeechSupported() || !text.trim()) {
+async function speakText(options: UseSpeechSynthesisOptions, startFromChar = 0) {
+  if (!isSpeechSupported() || !options.text.trim()) {
     clearSpeechState();
     return;
   }
 
-  cancelSpeech();
+  // Cancel any existing speech without clearing our paused state yet
+  speechRequestToken += 1;
   const requestToken = speechRequestToken;
   const synth = window.speechSynthesis;
+  synth.cancel();
+
   const voices = await ensureVoicesLoaded();
 
   if (requestToken !== speechRequestToken) return;
 
-  const utterance = new SpeechSynthesisUtterance(text);
-  const selectedVoice = findBestVoice(voices, lang, fallbackLang);
+  // Use substring from startFromChar for resume functionality
+  const textToSpeak = startFromChar > 0 ? options.text.substring(startFromChar) : options.text;
+  const utterance = new SpeechSynthesisUtterance(textToSpeak);
+  const selectedVoice = findBestVoice(voices, options.lang, options.fallbackLang || "en-US");
 
-  utterance.lang = resolveUtteranceLang(voices, lang, selectedVoice, fallbackLang);
+  utterance.lang = resolveUtteranceLang(voices, options.lang, selectedVoice, options.fallbackLang || "en-US");
   utterance.rate = 0.95;
 
   if (selectedVoice) {
     utterance.voice = selectedVoice;
   }
 
+  // Track character position for resume workaround
+  utterance.onboundary = (event) => {
+    if (requestToken !== speechRequestToken) return;
+    pausedCharIndex = startFromChar + event.charIndex;
+  };
+
   utterance.onstart = () => {
     if (requestToken !== speechRequestToken) return;
-    activeItemId = itemId;
-    emitSpeechStatus({ activeItemId: itemId, state: "playing" });
+    activeItemId = options.itemId;
+    pausedOptions = options;
+    emitSpeechStatus({ activeItemId: options.itemId, state: "playing" });
   };
 
   utterance.onpause = () => {
-    if (requestToken !== speechRequestToken || activeItemId !== itemId) return;
-    emitSpeechStatus({ activeItemId: itemId, state: "paused" });
+    if (requestToken !== speechRequestToken || activeItemId !== options.itemId) return;
+    emitSpeechStatus({ activeItemId: options.itemId, state: "paused" });
   };
 
   utterance.onresume = () => {
-    if (requestToken !== speechRequestToken || activeItemId !== itemId) return;
-    emitSpeechStatus({ activeItemId: itemId, state: "playing" });
+    if (requestToken !== speechRequestToken || activeItemId !== options.itemId) return;
+    emitSpeechStatus({ activeItemId: options.itemId, state: "playing" });
   };
 
   utterance.onend = () => {
-    if (requestToken !== speechRequestToken || activeItemId !== itemId) return;
+    if (requestToken !== speechRequestToken || activeItemId !== options.itemId) return;
     clearSpeechState();
   };
 
-  utterance.onerror = () => {
-    if (requestToken !== speechRequestToken || activeItemId !== itemId) return;
+  utterance.onerror = (event) => {
+    // "interrupted" is expected when we cancel to re-speak
+    if (event.error === "interrupted") return;
+    if (requestToken !== speechRequestToken || activeItemId !== options.itemId) return;
     clearSpeechState();
   };
 
-  activeItemId = itemId;
-  emitSpeechStatus({ activeItemId: itemId, state: "playing" });
+  activeItemId = options.itemId;
+  pausedOptions = options;
+  emitSpeechStatus({ activeItemId: options.itemId, state: "playing" });
   synth.speak(utterance);
 }
 
@@ -217,16 +237,43 @@ async function toggleSpeech(options: UseSpeechSynthesisOptions) {
 
   if (activeItemId === options.itemId && (synth.speaking || synth.pending || synth.paused)) {
     if (synth.paused) {
+      // Mobile browsers don't support resume() reliably.
+      // Try native resume first, then fall back to cancel+re-speak from last known position.
       synth.resume();
-      emitSpeechStatus({ activeItemId: options.itemId, state: "playing" });
+
+      // Check after a short delay if resume actually worked
+      await new Promise((r) => setTimeout(r, 200));
+
+      if (synth.speaking && !synth.paused) {
+        // Native resume worked
+        emitSpeechStatus({ activeItemId: options.itemId, state: "playing" });
+        return;
+      }
+
+      // Native resume failed — re-speak from last known character position
+      if (pausedOptions) {
+        await speakText(pausedOptions, pausedCharIndex);
+      }
       return;
     }
 
+    // Currently playing → pause
     synth.pause();
-    emitSpeechStatus({ activeItemId: options.itemId, state: "paused" });
+
+    // Check if pause actually worked (some mobile browsers don't support it either)
+    await new Promise((r) => setTimeout(r, 200));
+
+    if (synth.paused) {
+      emitSpeechStatus({ activeItemId: options.itemId, state: "paused" });
+    } else {
+      // Pause not supported — cancel instead and mark as idle
+      cancelSpeech();
+    }
     return;
   }
 
+  // New speech
+  pausedCharIndex = 0;
   await speakText(options);
 }
 

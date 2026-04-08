@@ -58,7 +58,7 @@ export default function Index() {
     .filter((g) => !allowedCategories || allowedCategories.includes(g.category));
 
   return (
-    <div className="min-h-screen bg-background pb-8" lang="pt-BR">
+    <div className="min-h-screen bg-background pb-8" lang={language === "pt" ? "pt-BR" : language === "en" ? "en-US" : language === "es" ? "es-ES" : "fr-FR"}>
       {/* Header */}
       <header className="sticky top-0 z-30 bg-background/95 backdrop-blur border-b border-border">
         <div className="container py-3 flex items-center gap-3">

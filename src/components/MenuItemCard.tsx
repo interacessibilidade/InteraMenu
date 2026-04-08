@@ -15,7 +15,7 @@ const audioCurrencyLabels: Record<Language, string> = {
 };
 
 function buildAudioText(item: MenuItem, language: Language) {
-  if (language === "pt" && item.audio_text) {
+  if (item.audio_text) {
     return item.audio_text;
   }
 
