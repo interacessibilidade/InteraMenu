@@ -159,14 +159,6 @@ export default function MenuManagement() {
             </button>
           </div>
         </div>
-            <button
-              onClick={() => { setShowForm(true); setEditingId(null); setForm(emptyForm); setAutoAudio(true); }}
-              className="flex items-center gap-2 px-4 py-2 rounded-md bg-primary text-primary-foreground font-medium text-sm hover:bg-primary/90 transition-colors"
-            >
-              <Plus className="w-4 h-4" /> Novo Item
-            </button>
-          </div>
-        </div>
       </header>
 
       <main className="container py-6">
