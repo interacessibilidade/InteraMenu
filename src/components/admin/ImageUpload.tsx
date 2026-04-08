@@ -1,6 +1,6 @@
 import { useState, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Upload, X, Loader2, ImageIcon } from "lucide-react";
+import { Upload, X, Loader2, ImageIcon, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 
 const ACCEPTED_TYPES = ["image/jpeg", "image/jpg", "image/png"];
@@ -15,8 +15,27 @@ interface ImageUploadProps {
 
 export default function ImageUpload({ currentUrl, onUrlChange, altText, onAltChange }: ImageUploadProps) {
   const [uploading, setUploading] = useState(false);
+  const [generatingAlt, setGeneratingAlt] = useState(false);
   const [preview, setPreview] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
+
+  const generateAltText = async (imageUrl: string) => {
+    setGeneratingAlt(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("describe-image", {
+        body: { imageUrl },
+      });
+      if (error) throw error;
+      if (data?.description) {
+        onAltChange(data.description);
+        toast.success("Descrição gerada automaticamente");
+      }
+    } catch (err: any) {
+      console.error("Alt text generation failed:", err);
+    } finally {
+      setGeneratingAlt(false);
+    }
+  };
 
   const handleFile = async (file: File) => {
     if (!ACCEPTED_TYPES.includes(file.type)) {
@@ -28,15 +47,12 @@ export default function ImageUpload({ currentUrl, onUrlChange, altText, onAltCha
       return;
     }
 
-    // Show preview
     const reader = new FileReader();
     reader.onload = (e) => setPreview(e.target?.result as string);
     reader.readAsDataURL(file);
 
-    // Upload
     setUploading(true);
     try {
-      const ext = file.name.split(".").pop();
       const fileName = `${Date.now()}-${file.name.replace(/[^a-zA-Z0-9.-]/g, "_")}`;
       const filePath = `restaurante-default/${fileName}`;
 
@@ -50,8 +66,12 @@ export default function ImageUpload({ currentUrl, onUrlChange, altText, onAltCha
         .from("cardapio-imagens")
         .getPublicUrl(filePath);
 
-      onUrlChange(urlData.publicUrl);
+      const publicUrl = urlData.publicUrl;
+      onUrlChange(publicUrl);
       toast.success("Upload concluído");
+
+      // Auto-generate alt text via AI
+      generateAltText(publicUrl);
     } catch (err: any) {
       toast.error("Erro ao enviar imagem: " + (err.message || "tente novamente"));
       setPreview(null);
@@ -65,6 +85,7 @@ export default function ImageUpload({ currentUrl, onUrlChange, altText, onAltCha
   const removeImage = () => {
     setPreview(null);
     onUrlChange("");
+    onAltChange("");
     if (fileRef.current) fileRef.current.value = "";
   };
 
@@ -139,16 +160,19 @@ export default function ImageUpload({ currentUrl, onUrlChange, altText, onAltCha
       )}
 
       <p className="text-xs text-muted-foreground" aria-live="polite">
-        {uploading ? "Upload em andamento..." : "Formatos: JPG, PNG · Máximo: 2MB"}
+        {uploading ? "Upload em andamento..." : generatingAlt ? "Gerando descrição com IA..." : "Formatos: JPG, PNG · Máximo: 2MB"}
       </p>
 
       <div>
-        <label className={labelClass}>Texto alternativo da imagem *</label>
+        <label className={labelClass}>
+          Texto alternativo da imagem *
+          {generatingAlt && <Sparkles className="inline w-3.5 h-3.5 ml-1 animate-pulse text-primary" />}
+        </label>
         <input
           className={inputClass}
           value={altText}
           onChange={(e) => onAltChange(e.target.value)}
-          placeholder="Descreva a imagem para acessibilidade"
+          placeholder={generatingAlt ? "Gerando com IA..." : "Descreva a imagem para acessibilidade"}
           required={!!displayUrl}
         />
       </div>

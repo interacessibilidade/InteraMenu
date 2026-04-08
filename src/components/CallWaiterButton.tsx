@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Bell, Check } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useLanguage } from "@/hooks/useLanguage";
+import { toast } from "sonner";
 
 export function CallWaiterButton({ tableNumber }: { tableNumber: number | null }) {
   const [status, setStatus] = useState<"idle" | "loading" | "sent">("idle");
@@ -10,6 +11,22 @@ export function CallWaiterButton({ tableNumber }: { tableNumber: number | null }
   const handleCall = async () => {
     if (!tableNumber || status === "loading") return;
     setStatus("loading");
+
+    // Check for existing pending call from this table
+    const { data: existing } = await supabase
+      .from("waiter_calls")
+      .select("id")
+      .eq("table_number", tableNumber)
+      .eq("status", "pending")
+      .limit(1);
+
+    if (existing && existing.length > 0) {
+      toast.info(t("waiter.already_called") || "Garçom já foi chamado para esta mesa.");
+      setStatus("sent");
+      setTimeout(() => setStatus("idle"), 5000);
+      return;
+    }
+
     const { error } = await supabase.from("waiter_calls").insert({ table_number: tableNumber });
     if (error) {
       console.error("Waiter call failed:", error);

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Plus, Trash2, Edit2, Bell, QrCode } from "lucide-react";
@@ -16,6 +16,7 @@ const categories: { value: MenuCategory; label: string }[] = [
   { value: "acompanhamento", label: "Acompanhamento" },
   { value: "bebida", label: "Bebida" },
   { value: "sobremesa", label: "Sobremesa" },
+  { value: "outros", label: "Outros" },
 ];
 
 const allergenOptions = [
@@ -43,11 +44,21 @@ const emptyForm: Omit<MenuInsert, "id"> = {
   sort_order: 0,
 };
 
+function buildAutoAudioText(form: Omit<MenuInsert, "id">) {
+  const parts: string[] = [];
+  if (form.name) parts.push(form.name);
+  if (form.price) parts.push(`R$ ${Number(form.price).toFixed(2).replace(".", ",")}`);
+  if (form.description) parts.push(String(form.description));
+  if (form.ingredients) parts.push(String(form.ingredients));
+  return parts.join(". ") + ".";
+}
+
 export default function MenuManagement() {
   const queryClient = useQueryClient();
   const [form, setForm] = useState<Omit<MenuInsert, "id">>(emptyForm);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
+  const [autoAudio, setAutoAudio] = useState(true);
 
   const { data: items, isLoading } = useQuery({
     queryKey: ["admin_menu_items"],
@@ -57,6 +68,21 @@ export default function MenuManagement() {
       return data;
     },
   });
+
+  // Auto-fill sort_order when category changes (new items only)
+  useEffect(() => {
+    if (editingId) return;
+    if (!items) return;
+    const sameCat = items.filter((i) => i.category === form.category);
+    const maxOrder = sameCat.length > 0 ? Math.max(...sameCat.map((i) => i.sort_order)) : -1;
+    setForm((prev) => ({ ...prev, sort_order: maxOrder + 1 }));
+  }, [form.category, items, editingId]);
+
+  // Auto-fill audio_text
+  useEffect(() => {
+    if (!autoAudio) return;
+    setForm((prev) => ({ ...prev, audio_text: buildAutoAudioText(prev) }));
+  }, [form.name, form.price, form.description, form.ingredients, autoAudio]);
 
   const saveMutation = useMutation({
     mutationFn: async (data: Omit<MenuInsert, "id">) => {
@@ -73,6 +99,7 @@ export default function MenuManagement() {
       setForm(emptyForm);
       setEditingId(null);
       setShowForm(false);
+      setAutoAudio(true);
     },
   });
 
@@ -100,6 +127,7 @@ export default function MenuManagement() {
       sort_order: item.sort_order,
     });
     setEditingId(item.id);
+    setAutoAudio(false); // Don't overwrite existing audio text
     setShowForm(true);
   };
 
@@ -133,7 +161,7 @@ export default function MenuManagement() {
               <QrCode className="w-4 h-4" /> QR Codes
             </Link>
             <button
-              onClick={() => { setShowForm(true); setEditingId(null); setForm(emptyForm); }}
+              onClick={() => { setShowForm(true); setEditingId(null); setForm(emptyForm); setAutoAudio(true); }}
               className="flex items-center gap-2 px-4 py-2 rounded-md bg-primary text-primary-foreground font-medium text-sm hover:bg-primary/90 transition-colors"
             >
               <Plus className="w-4 h-4" /> Novo Item
@@ -143,7 +171,6 @@ export default function MenuManagement() {
       </header>
 
       <main className="container py-6">
-        {/* Form */}
         {showForm && (
           <div className="bg-card border border-border rounded-lg p-6 mb-8 shadow-sm">
             <h2 className="text-lg font-bold text-foreground mb-4">
@@ -201,9 +228,18 @@ export default function MenuManagement() {
                 altText={form.image_alt || ""}
                 onAltChange={(alt) => setForm({ ...form, image_alt: alt })}
               />
-              <div>
+              <div className="sm:col-span-2">
                 <label className={labelClass}>Texto para Áudio</label>
-                <input className={inputClass} value={form.audio_text || ""} onChange={(e) => setForm({ ...form, audio_text: e.target.value })} placeholder="Deixe vazio para usar nome + ingredientes" />
+                <textarea
+                  className={inputClass}
+                  rows={3}
+                  value={form.audio_text || ""}
+                  onChange={(e) => { setAutoAudio(false); setForm({ ...form, audio_text: e.target.value }); }}
+                  placeholder="Gerado automaticamente: Nome. Preço. Descrição. Ingredientes."
+                />
+                <p className="text-xs text-muted-foreground mt-1">
+                  {autoAudio ? "✨ Preenchido automaticamente" : "Editado manualmente"}
+                </p>
               </div>
               <div>
                 <label className={labelClass}>Link do Vídeo em Libras</label>
@@ -219,7 +255,7 @@ export default function MenuManagement() {
                 <button type="submit" disabled={saveMutation.isPending} className="px-6 py-2.5 rounded-md bg-primary text-primary-foreground font-bold text-sm hover:bg-primary/90 transition-colors">
                   {saveMutation.isPending ? "Salvando..." : editingId ? "Atualizar" : "Criar"}
                 </button>
-                <button type="button" onClick={() => { setShowForm(false); setEditingId(null); setForm(emptyForm); }} className="px-6 py-2.5 rounded-md bg-secondary text-secondary-foreground font-medium text-sm">
+                <button type="button" onClick={() => { setShowForm(false); setEditingId(null); setForm(emptyForm); setAutoAudio(true); }} className="px-6 py-2.5 rounded-md bg-secondary text-secondary-foreground font-medium text-sm">
                   Cancelar
                 </button>
               </div>
@@ -227,7 +263,6 @@ export default function MenuManagement() {
           </div>
         )}
 
-        {/* List */}
         {isLoading ? (
           <div className="space-y-3">{[1,2,3].map(i => <div key={i} className="h-16 bg-muted rounded-lg animate-pulse" />)}</div>
         ) : (
