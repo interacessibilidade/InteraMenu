@@ -324,6 +324,13 @@ export function useSpeechSynthesis({ itemId, text, lang, fallbackLang = "en-US" 
   const isSupported = isSpeechSupported();
   const [audioState, setAudioState] = useState<SpeechPlaybackState>(() => getSpeechStateForItem(itemId));
 
+  // Cancel speech when language changes while this item is playing
+  useEffect(() => {
+    if (isSupported && activeItemId === itemId) {
+      cancelSpeech();
+    }
+  }, [lang]);
+
   useEffect(() => {
     if (!isSupported) {
       setAudioState("idle");
