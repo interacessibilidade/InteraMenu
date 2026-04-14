@@ -11,6 +11,8 @@ type MenuItem = Database["public"]["Tables"]["menu_items"]["Row"];
 const audioCurrencyLabels: Record<Language, string> = {
   pt: "reais",
   en: "Brazilian reais",
+  es: "reales",
+  fr: "euros",
 };
 
 function buildAudioText(item: MenuItem, language: Language) {
