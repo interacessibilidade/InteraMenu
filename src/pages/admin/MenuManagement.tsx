@@ -215,9 +215,9 @@ export default function MenuManagement() {
               </div>
               <ImageUpload
                 currentUrl={form.image_url || ""}
-                onUrlChange={(url) => setForm({ ...form, image_url: url })}
+                onUrlChange={(url) => setForm((prev) => ({ ...prev, image_url: url }))}
                 altText={form.image_alt || ""}
-                onAltChange={(alt) => setForm({ ...form, image_alt: alt })}
+                onAltChange={(alt) => setForm((prev) => ({ ...prev, image_alt: alt }))}
               />
               <div className="sm:col-span-2">
                 <label className={labelClass}>Texto para Áudio</label>
