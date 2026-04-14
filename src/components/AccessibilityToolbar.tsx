@@ -51,7 +51,7 @@ export function AccessibilityToolbar() {
       <button
         onClick={() => setOpen(!open)}
         className="w-14 h-14 rounded-full bg-primary text-primary-foreground shadow-lg flex items-center justify-center hover:scale-105 transition-transform focus:outline-none focus:ring-4 focus:ring-ring"
-        aria-label={open ? "Fechar painel de opções de acessibilidade" : "Abrir painel de opções de acessibilidade"}
+        aria-label={open ? t("accessibility.close") : t("accessibility.open.description")}
         aria-expanded={open}
       >
         <PersonStanding className="w-7 h-7" />
