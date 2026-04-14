@@ -30,7 +30,7 @@ serve(async (req) => {
       );
     }
 
-    const prompt = `Professional food photography, DSLR quality, photorealistic top-down view of individual ingredients laid out separately on a neutral wood surface. Dish: ${itemName}. Ingredients: ${ingredients}. Style: soft natural lighting, gentle shadows, high definition 4K, premium restaurant aesthetic. Each ingredient placed separately and clearly visible. Do NOT include any text, labels, illustrations, cartoons, vectors, or infographic elements. The image must look like a real photograph used in professional restaurant menus.`;
+    const prompt = `Professional food photography, DSLR quality, photorealistic top-down view of individual ingredients laid out separately on a neutral wood surface. Dish: ${itemName}. Ingredients: ${ingredients}. Style: soft natural lighting, gentle shadows, high definition 4K, premium restaurant aesthetic. Each ingredient placed separately and clearly visible. IMPORTANT: Each ingredient must have a small, discrete label with its name placed next to it, like professional culinary presentations. Labels should use simple, clean typography with good legibility and adequate contrast. Keep labels short and readable. Do NOT include illustrations, cartoons, vectors, childish appearance, or excessive infographic elements. The image must look like a real photograph of ingredients with small identifying tags, as seen in premium culinary presentations. Clear text, simple font, high legibility.`;
 
     // Generate image via Lovable AI Gateway
     const aiResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
