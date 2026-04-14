@@ -24,6 +24,7 @@ export type Database = {
           id: string
           image_alt: string | null
           image_url: string | null
+          ingredientes_imagem_url: string | null
           ingredients: string | null
           is_available: boolean
           libras_video_url: string | null
@@ -41,6 +42,7 @@ export type Database = {
           id?: string
           image_alt?: string | null
           image_url?: string | null
+          ingredientes_imagem_url?: string | null
           ingredients?: string | null
           is_available?: boolean
           libras_video_url?: string | null
@@ -58,6 +60,7 @@ export type Database = {
           id?: string
           image_alt?: string | null
           image_url?: string | null
+          ingredientes_imagem_url?: string | null
           ingredients?: string | null
           is_available?: boolean
           libras_video_url?: string | null
