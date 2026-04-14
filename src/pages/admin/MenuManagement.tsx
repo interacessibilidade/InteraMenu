@@ -232,9 +232,10 @@ export default function MenuManagement() {
                   {autoAudio ? "✨ Preenchido automaticamente" : "Editado manualmente"}
                 </p>
               </div>
-              <div>
-                <label className={labelClass}>Link do Vídeo em Libras</label>
-                <input className={inputClass} value={form.libras_video_url || ""} onChange={(e) => setForm({ ...form, libras_video_url: e.target.value })} placeholder="YouTube ou Vimeo" />
+              <div className="sm:col-span-2">
+                <p className="text-xs text-muted-foreground">
+                  💡 A ilustração dos ingredientes será gerada automaticamente por IA quando o cliente clicar em "Ver ingredientes" no cardápio.
+                </p>
               </div>
               <div className="sm:col-span-2 flex items-center gap-3">
                 <label className="flex items-center gap-2 cursor-pointer">
