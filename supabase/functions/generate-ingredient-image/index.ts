@@ -30,7 +30,7 @@ serve(async (req) => {
       );
     }
 
-    const prompt = `Create a clean infographic-style image showing the ingredients of a dish. Dish name: ${itemName}. Ingredients: ${ingredients}. Show each ingredient visually separated, minimalistic style, white background, high clarity, accessible design. Label each ingredient clearly.`;
+    const prompt = `Professional food photography, DSLR quality, photorealistic top-down view of individual ingredients laid out separately on a neutral wood surface. Dish: ${itemName}. Ingredients: ${ingredients}. Style: soft natural lighting, gentle shadows, high definition 4K, premium restaurant aesthetic. Each ingredient placed separately and clearly visible. Do NOT include any text, labels, illustrations, cartoons, vectors, or infographic elements. The image must look like a real photograph used in professional restaurant menus.`;
 
     // Generate image via Lovable AI Gateway
     const aiResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
