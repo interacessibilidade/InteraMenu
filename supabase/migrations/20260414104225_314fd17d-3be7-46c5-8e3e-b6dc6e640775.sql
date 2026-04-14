@@ -1,0 +1,1 @@
+ALTER TABLE public.menu_items ADD COLUMN ingredientes_imagem_url text DEFAULT NULL;
