@@ -19,12 +19,13 @@ export function CategoryFilter({ selected, onChange }: Props) {
   const { t } = useLanguage();
 
   return (
-    <div className="flex flex-wrap justify-center gap-2" role="tablist" aria-label="Category filter">
+    <div className="flex flex-wrap justify-center gap-2" role="tablist" aria-label={t("filter.aria.label")}>
       {filters.map((f) => (
         <button
           key={f.value}
           role="tab"
           aria-selected={selected === f.value}
+          aria-label={f.value === "all" ? t("filter.aria.all") : undefined}
           onClick={() => onChange(f.value)}
           className={`whitespace-nowrap px-3 py-1.5 rounded-full text-xs font-semibold transition-colors
             ${selected === f.value

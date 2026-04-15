@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { PersonStanding, Plus, Minus, Eye, Palette, Type, RotateCcw } from "lucide-react";
 import { useAccessibility } from "@/hooks/useAccessibility";
 import { useLanguage } from "@/hooks/useLanguage";
@@ -7,6 +7,7 @@ import { motion, AnimatePresence } from "framer-motion";
 export function AccessibilityToolbar() {
   const [open, setOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
+  const firstItemRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
     if (!open) return;
@@ -18,6 +19,13 @@ export function AccessibilityToolbar() {
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [open]);
+
+  useEffect(() => {
+    if (open) {
+      setTimeout(() => firstItemRef.current?.focus(), 100);
+    }
+  }, [open]);
+
   const { fontSize, highContrast, grayscale, dyslexiaFont, increaseFontSize, decreaseFontSize, toggleHighContrast, toggleGrayscale, toggleDyslexiaFont, resetAll } = useAccessibility();
   const { t } = useLanguage();
 
@@ -39,13 +47,15 @@ export function AccessibilityToolbar() {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 20, scale: 0.9 }}
             className="bg-card border border-border rounded-lg shadow-xl p-3 flex flex-col gap-2 min-w-[220px]"
-            role="toolbar"
+            role="menu"
             aria-label={t("accessibility.title")}
           >
             <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-1">{t("accessibility.title")}</p>
-            {tools.map((tool) => (
+            {tools.map((tool, index) => (
                 <button
                 key={tool.label}
+                ref={index === 0 ? firstItemRef : undefined}
+                role="menuitem"
                 onClick={tool.action}
                 className={`flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium transition-colors
                   ${(tool as any).isReset ? "bg-primary/15 text-primary hover:bg-primary/25 font-semibold" : tool.active ? "bg-primary text-primary-foreground" : "hover:bg-secondary text-foreground"}`}

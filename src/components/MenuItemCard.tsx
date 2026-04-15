@@ -225,7 +225,7 @@ export function MenuItemCard({ item }: { item: MenuItem }) {
               ) : ingredientImageUrl ? (
                 <img
                   src={ingredientImageUrl}
-                  alt={`${t("ingredients.image.alt")} ${item.name}: ${item.ingredients}`}
+                  alt={t("ingredients.image.figure_alt")}
                   className="w-full rounded-lg"
                   loading="lazy"
                 />
