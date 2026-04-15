@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { PersonStanding, Plus, Minus, Eye, Palette, Type, RotateCcw } from "lucide-react";
 import { useAccessibility } from "@/hooks/useAccessibility";
 import { useLanguage } from "@/hooks/useLanguage";
@@ -6,6 +6,18 @@ import { motion, AnimatePresence } from "framer-motion";
 
 export function AccessibilityToolbar() {
   const [open, setOpen] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    function handleClickOutside(e: MouseEvent) {
+      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+        setOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [open]);
   const { fontSize, highContrast, grayscale, dyslexiaFont, increaseFontSize, decreaseFontSize, toggleHighContrast, toggleGrayscale, toggleDyslexiaFont, resetAll } = useAccessibility();
   const { t } = useLanguage();
 
