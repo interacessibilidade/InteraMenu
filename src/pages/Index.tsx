@@ -7,8 +7,10 @@ import { CallWaiterButton } from "@/components/CallWaiterButton";
 import { AccessibilityToolbar } from "@/components/AccessibilityToolbar";
 import { LanguageSelector } from "@/components/LanguageSelector";
 import { CategoryFilter, type CategoryFilterValue } from "@/components/CategoryFilter";
-import { UtensilsCrossed } from "lucide-react";
+import { UtensilsCrossed, PlayCircle } from "lucide-react";
 import { useLanguage } from "@/hooks/useLanguage";
+import { TutorialVideoModal } from "@/components/TutorialVideoModal";
+import { TutorialPrompt } from "@/components/TutorialPrompt";
 import { useMenuTranslation } from "@/hooks/useMenuTranslation";
 import type { Database } from "@/integrations/supabase/types";
 
@@ -30,6 +32,7 @@ export default function Index() {
   const tableNumber = mesa ? parseInt(mesa, 10) : null;
   const { t, language } = useLanguage();
   const [filter, setFilter] = useState<CategoryFilterValue>("all");
+  const [tutorialOpen, setTutorialOpen] = useState(false);
 
   const { data: items, isLoading } = useQuery({
     queryKey: ["menu_items"],
@@ -71,9 +74,19 @@ export default function Index() {
               <p className="text-xs text-muted-foreground font-medium">{t("header.table")} {tableNumber}</p>
             )}
           </div>
+          <button
+            onClick={() => setTutorialOpen(true)}
+            className="flex items-center gap-1.5 h-9 px-3 rounded-md border border-input bg-background text-sm font-medium hover:bg-secondary transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            aria-label={t("tutorial.modal.aria")}
+          >
+            <PlayCircle className="w-4 h-4 shrink-0" aria-hidden="true" />
+            <span className="hidden sm:inline">{t("tutorial.button")}</span>
+          </button>
           <LanguageSelector />
         </div>
       </header>
+
+      <TutorialPrompt onWatch={() => setTutorialOpen(true)} />
 
       {/* Sticky categories + waiter call */}
       <div className="sticky top-[57px] z-20 bg-background/95 backdrop-blur border-b border-border">
@@ -118,6 +131,7 @@ export default function Index() {
       </main>
 
       <AccessibilityToolbar />
+      <TutorialVideoModal open={tutorialOpen} onClose={() => setTutorialOpen(false)} />
     </div>
   );
 }
