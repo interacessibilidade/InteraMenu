@@ -13,18 +13,36 @@ const SPEED_OPTIONS = [0.75, 1, 1.25, 1.5];
 export function TutorialVideoModal({ open, onClose }: TutorialVideoModalProps) {
   const { t } = useLanguage();
   const videoRef = useRef<HTMLVideoElement>(null);
+  const closeButtonRef = useRef<HTMLButtonElement>(null);
   const [playing, setPlaying] = useState(false);
   const [muted, setMuted] = useState(false);
   const [speed, setSpeed] = useState(1);
   const [showSpeedMenu, setShowSpeedMenu] = useState(false);
+  const [liveMessage, setLiveMessage] = useState("");
 
   useEffect(() => {
-    if (!open) {
+    if (open) {
+      // Focus the close button first, then autoplay
+      setTimeout(() => {
+        closeButtonRef.current?.focus();
+        const v = videoRef.current;
+        if (v) {
+          v.play().then(() => {
+            setPlaying(true);
+            setLiveMessage(t("tutorial.aria.started"));
+          }).catch(() => {
+            // autoplay blocked
+            setLiveMessage(t("tutorial.aria.ready"));
+          });
+        }
+      }, 100);
+    } else {
       setPlaying(false);
       setSpeed(1);
       setShowSpeedMenu(false);
+      setLiveMessage("");
     }
-  }, [open]);
+  }, [open, t]);
 
   useEffect(() => {
     if (!open) return;
@@ -41,11 +59,13 @@ export function TutorialVideoModal({ open, onClose }: TutorialVideoModalProps) {
     if (v.paused) {
       v.play();
       setPlaying(true);
+      setLiveMessage(t("tutorial.aria.playing"));
     } else {
       v.pause();
       setPlaying(false);
+      setLiveMessage(t("tutorial.aria.paused"));
     }
-  }, []);
+  }, [t]);
 
   const stopVideo = useCallback(() => {
     const v = videoRef.current;
@@ -53,7 +73,8 @@ export function TutorialVideoModal({ open, onClose }: TutorialVideoModalProps) {
     v.pause();
     v.currentTime = 0;
     setPlaying(false);
-  }, []);
+    setLiveMessage(t("tutorial.aria.stopped"));
+  }, [t]);
 
   const toggleMute = useCallback(() => {
     const v = videoRef.current;
@@ -69,6 +90,13 @@ export function TutorialVideoModal({ open, onClose }: TutorialVideoModalProps) {
     setSpeed(s);
     setShowSpeedMenu(false);
   }, []);
+
+  const handleVideoKeyDown = useCallback((e: React.KeyboardEvent) => {
+    if (e.key === " " || e.key === "k") {
+      e.preventDefault();
+      togglePlay();
+    }
+  }, [togglePlay]);
 
   return (
     <AnimatePresence>
@@ -94,6 +122,7 @@ export function TutorialVideoModal({ open, onClose }: TutorialVideoModalProps) {
             <div className="flex items-center justify-between p-4 border-b border-border">
               <h2 className="font-bold text-foreground">{t("tutorial.title")}</h2>
               <button
+                ref={closeButtonRef}
                 onClick={onClose}
                 className="p-1 rounded-md hover:bg-secondary transition-colors focus:outline-none focus:ring-2 focus:ring-ring"
                 aria-label={t("tutorial.close")}
@@ -110,12 +139,23 @@ export function TutorialVideoModal({ open, onClose }: TutorialVideoModalProps) {
                 className="w-full h-full"
                 preload="none"
                 playsInline
-                onEnded={() => setPlaying(false)}
+                tabIndex={0}
+                aria-label={t("tutorial.modal.aria")}
+                onKeyDown={handleVideoKeyDown}
+                onEnded={() => {
+                  setPlaying(false);
+                  setLiveMessage(t("tutorial.aria.ended"));
+                }}
               />
             </div>
 
+            {/* Live region for screen reader feedback */}
+            <div aria-live="polite" aria-atomic="true" className="sr-only">
+              {liveMessage}
+            </div>
+
             {/* Controls */}
-            <div className="flex items-center gap-2 p-3 border-t border-border flex-wrap">
+            <div className="flex items-center gap-2 p-3 border-t border-border flex-wrap" role="toolbar" aria-label={t("tutorial.aria.controls")}>
               <button
                 onClick={togglePlay}
                 className="p-2 rounded-md hover:bg-secondary transition-colors focus:outline-none focus:ring-2 focus:ring-ring"
@@ -146,15 +186,18 @@ export function TutorialVideoModal({ open, onClose }: TutorialVideoModalProps) {
                   onClick={() => setShowSpeedMenu(!showSpeedMenu)}
                   className="flex items-center gap-1 px-2 py-1 rounded-md text-sm hover:bg-secondary transition-colors focus:outline-none focus:ring-2 focus:ring-ring"
                   aria-label={t("tutorial.speed")}
+                  aria-expanded={showSpeedMenu}
+                  aria-haspopup="true"
                 >
                   <Gauge className="w-4 h-4" />
                   <span>{speed}x</span>
                 </button>
                 {showSpeedMenu && (
-                  <div className="absolute bottom-full right-0 mb-1 bg-popover border border-border rounded-md shadow-lg py-1 z-10">
+                  <div className="absolute bottom-full right-0 mb-1 bg-popover border border-border rounded-md shadow-lg py-1 z-10" role="menu">
                     {SPEED_OPTIONS.map((s) => (
                       <button
                         key={s}
+                        role="menuitem"
                         onClick={() => changeSpeed(s)}
                         className={`block w-full text-left px-4 py-1.5 text-sm transition-colors ${
                           speed === s ? "bg-accent text-accent-foreground font-semibold" : "hover:bg-secondary"
