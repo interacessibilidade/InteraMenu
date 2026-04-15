@@ -5,6 +5,8 @@ import { Globe, ChevronDown } from "lucide-react";
 const languages: { value: Language; label: string; flag: string }[] = [
   { value: "pt", label: "Português", flag: "🇧🇷" },
   { value: "en", label: "English", flag: "🇺🇸" },
+  { value: "es", label: "Español", flag: "🇪🇸" },
+  { value: "fr", label: "Français", flag: "🇫🇷" },
 ];
 
 export function LanguageSelector() {
