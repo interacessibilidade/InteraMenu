@@ -136,7 +136,7 @@ export function TutorialVideoModal({ open, onClose }: TutorialVideoModalProps) {
             initial={{ scale: 0.9, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0.9, opacity: 0 }}
-            className="bg-card rounded-lg w-full max-w-2xl overflow-hidden shadow-2xl"
+            className="bg-card rounded-lg w-full max-w-sm overflow-hidden shadow-2xl max-h-[95vh] flex flex-col"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Header */}
