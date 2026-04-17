@@ -153,11 +153,11 @@ export function TutorialVideoModal({ open, onClose }: TutorialVideoModalProps) {
             </div>
 
             {/* Video */}
-            <div className="aspect-video bg-black">
+            <div className="aspect-[9/16] bg-black flex-1 min-h-0">
               <video
                 ref={videoRef}
                 src="/videos/tutorial-cardapio.mp4"
-                className="w-full h-full"
+                className="w-full h-full object-contain"
                 preload="none"
                 playsInline
                 tabIndex={0}
