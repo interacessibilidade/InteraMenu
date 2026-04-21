@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useState, useRef, useEffect } from "react";
 import { PersonStanding, Plus, Minus, Eye, Palette, Type, RotateCcw } from "lucide-react";
 import { useAccessibility } from "@/hooks/useAccessibility";
 import { useLanguage } from "@/hooks/useLanguage";
@@ -6,6 +6,7 @@ import { motion, AnimatePresence } from "framer-motion";
 
 export function AccessibilityToolbar() {
   const [open, setOpen] = useState(false);
+  const [liveMessage, setLiveMessage] = useState("");
   const containerRef = useRef<HTMLDivElement>(null);
   const firstItemRef = useRef<HTMLButtonElement>(null);
 
@@ -29,17 +30,58 @@ export function AccessibilityToolbar() {
   const { fontSize, highContrast, grayscale, dyslexiaFont, increaseFontSize, decreaseFontSize, toggleHighContrast, toggleGrayscale, toggleDyslexiaFont, resetAll } = useAccessibility();
   const { t } = useLanguage();
 
+  // Announce status (enabled/disabled) for screen readers when toggled
+  const announceToggle = (label: string, willBeActive: boolean) => {
+    const status = willBeActive ? t("accessibility.enabled") : t("accessibility.disabled");
+    // Force re-announcement even if same message: append zero-width space alternation
+    setLiveMessage("");
+    setTimeout(() => setLiveMessage(`${label}: ${status}`), 50);
+  };
+
+  const handleIncrease = () => {
+    increaseFontSize();
+    setLiveMessage("");
+    setTimeout(() => setLiveMessage(`${t("accessibility.font_size")} ${Math.min(fontSize + 2, 28)}px`), 50);
+  };
+  const handleDecrease = () => {
+    decreaseFontSize();
+    setLiveMessage("");
+    setTimeout(() => setLiveMessage(`${t("accessibility.font_size")} ${Math.max(fontSize - 2, 12)}px`), 50);
+  };
+  const handleHighContrast = () => {
+    announceToggle(t("accessibility.high_contrast"), !highContrast);
+    toggleHighContrast();
+  };
+  const handleGrayscale = () => {
+    announceToggle(t("accessibility.grayscale"), !grayscale);
+    toggleGrayscale();
+  };
+  const handleDyslexia = () => {
+    announceToggle(t("accessibility.dyslexia_font"), !dyslexiaFont);
+    toggleDyslexiaFont();
+  };
+  const handleReset = () => {
+    resetAll();
+    setLiveMessage("");
+    setTimeout(() => setLiveMessage(t("accessibility.reset.done")), 50);
+  };
+
   const tools = [
-    { icon: Plus, label: `${t("accessibility.increase_font")} (${fontSize}px)`, action: increaseFontSize, active: fontSize > 16 },
-    { icon: Minus, label: `${t("accessibility.decrease_font")} (${fontSize}px)`, action: decreaseFontSize, active: fontSize < 16 },
-    { icon: Eye, label: t("accessibility.high_contrast"), action: toggleHighContrast, active: highContrast },
-    { icon: Palette, label: t("accessibility.grayscale"), action: toggleGrayscale, active: grayscale },
-    { icon: Type, label: t("accessibility.dyslexia_font"), action: toggleDyslexiaFont, active: dyslexiaFont },
-    { icon: RotateCcw, label: t("accessibility.reset"), action: resetAll, active: false, isReset: true },
+    { icon: Plus, label: `${t("accessibility.increase_font")} (${fontSize}px)`, action: handleIncrease, active: fontSize > 16 },
+    { icon: Minus, label: `${t("accessibility.decrease_font")} (${fontSize}px)`, action: handleDecrease, active: fontSize < 16 },
+    { icon: Eye, label: t("accessibility.high_contrast"), action: handleHighContrast, active: highContrast },
+    { icon: Palette, label: t("accessibility.grayscale"), action: handleGrayscale, active: grayscale },
+    { icon: Type, label: t("accessibility.dyslexia_font"), action: handleDyslexia, active: dyslexiaFont },
+    { icon: RotateCcw, label: t("accessibility.reset"), action: handleReset, active: false, isReset: true },
   ];
 
   return (
     <div ref={containerRef} className="fixed bottom-4 right-4 z-50 flex flex-col items-end gap-2">
+      {/* Live region for screen reader feedback */}
+      <div aria-live="polite" aria-atomic="true" className="sr-only">
+        {liveMessage}
+      </div>
+
       <AnimatePresence>
         {open && (
           <motion.div
