@@ -370,6 +370,8 @@ const translations: Record<Language, Record<string, string>> = {
     "tutorial.prompt": "Découvrez comment utiliser le menu accessible",
     "tutorial.watchNow": "Voir maintenant",
     "tutorial.later": "Plus tard",
+    "tutorial.watchNow.aria": "Voir la vidéo sur l'utilisation du menu accessible",
+    "tutorial.later.aria": "Voir plus tard la vidéo sur l'utilisation du menu accessible",
     "tutorial.aria.started": "Vidéo démarrée. Utilisez Tab pour naviguer dans les contrôles.",
     "tutorial.aria.ready": "Vidéo prête à être lue. Utilisez Tab pour naviguer dans les contrôles.",
     "tutorial.aria.playing": "Vidéo en lecture.",
@@ -380,6 +382,10 @@ const translations: Record<Language, Record<string, string>> = {
     "filter.aria.label": "Filtre de catégories du menu",
     "filter.aria.all": "Voir tous les articles du menu",
     "ingredients.image.figure_alt": "Image montrant les ingrédients du plat",
+    "accessibility.enabled": "activé",
+    "accessibility.disabled": "désactivé",
+    "accessibility.font_size": "Taille de police ajustée à",
+    "accessibility.reset.done": "Paramètres d'accessibilité réinitialisés",
   },
 };
 
