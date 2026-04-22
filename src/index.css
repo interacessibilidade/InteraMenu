@@ -31,7 +31,7 @@
     --popover: 30 10% 97%;
     --popover-foreground: 20 10% 10%;
 
-    --primary: 10 53% 31%;
+    --primary: 137 57% 13%;
     --primary-foreground: 0 0% 100%;
 
     --secondary: 30 10% 90%;
@@ -40,7 +40,7 @@
     --muted: 30 10% 92%;
     --muted-foreground: 20 5% 45%;
 
-    --accent: 10 53% 31%;
+    --accent: 137 57% 13%;
     --accent-foreground: 0 0% 100%;
 
     --destructive: 0 84% 60%;
@@ -48,27 +48,27 @@
 
     --border: 30 10% 88%;
     --input: 30 10% 88%;
-    --ring: 10 53% 31%;
+    --ring: 137 57% 13%;
 
     --radius: 0.75rem;
 
     --success: 142 72% 40%;
     --success-foreground: 0 0% 100%;
 
-    --warning: 45 100% 51%;
-    --warning-foreground: 0 0% 0%;
+    --warning: 39 39% 54%;
+    --warning-foreground: 0 0% 100%;
 
-    --waiter-call: 10 53% 31%;
+    --waiter-call: 39 39% 54%;
     --waiter-call-foreground: 0 0% 100%;
 
     --sidebar-background: 20 10% 10%;
     --sidebar-foreground: 30 10% 90%;
-    --sidebar-primary: 10 53% 31%;
+    --sidebar-primary: 137 57% 13%;
     --sidebar-primary-foreground: 0 0% 100%;
     --sidebar-accent: 20 10% 18%;
     --sidebar-accent-foreground: 30 10% 90%;
     --sidebar-border: 20 10% 18%;
-    --sidebar-ring: 10 53% 31%;
+    --sidebar-ring: 137 57% 13%;
   }
 
   .high-contrast {
