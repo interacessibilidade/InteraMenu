@@ -1,0 +1,14 @@
+ALTER TYPE public.menu_category ADD VALUE IF NOT EXISTS 'cafe_espresso';
+ALTER TYPE public.menu_category ADD VALUE IF NOT EXISTS 'chocolate';
+ALTER TYPE public.menu_category ADD VALUE IF NOT EXISTS 'empanada_salgado';
+ALTER TYPE public.menu_category ADD VALUE IF NOT EXISTS 'metodos_extracao';
+ALTER TYPE public.menu_category ADD VALUE IF NOT EXISTS 'paulistinha';
+ALTER TYPE public.menu_category ADD VALUE IF NOT EXISTS 'waffles';
+ALTER TYPE public.menu_category ADD VALUE IF NOT EXISTS 'almoco';
+ALTER TYPE public.menu_category ADD VALUE IF NOT EXISTS 'espresso_gelado';
+ALTER TYPE public.menu_category ADD VALUE IF NOT EXISTS 'chocolate_gelado';
+ALTER TYPE public.menu_category ADD VALUE IF NOT EXISTS 'drinks_sem_alcool';
+ALTER TYPE public.menu_category ADD VALUE IF NOT EXISTS 'chai_latte';
+ALTER TYPE public.menu_category ADD VALUE IF NOT EXISTS 'chas';
+ALTER TYPE public.menu_category ADD VALUE IF NOT EXISTS 'drinks_especiais';
+ALTER TYPE public.menu_category ADD VALUE IF NOT EXISTS 'cervejas';

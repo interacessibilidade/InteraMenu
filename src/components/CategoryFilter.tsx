@@ -1,13 +1,48 @@
 import { useLanguage } from "@/hooks/useLanguage";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
-export type CategoryFilterValue = "all" | "prato" | "bebida" | "sobremesa" | "outros";
+export type CategoryFilterValue =
+  | "all"
+  | "cafe_espresso"
+  | "chocolate"
+  | "sobremesa"
+  | "empanada_salgado"
+  | "metodos_extracao"
+  | "paulistinha"
+  | "waffles"
+  | "almoco"
+  | "espresso_gelado"
+  | "chocolate_gelado"
+  | "bebida"
+  | "drinks_sem_alcool"
+  | "chai_latte"
+  | "chas"
+  | "drinks_especiais"
+  | "cervejas";
 
-const filters: { value: CategoryFilterValue; labelKey: string }[] = [
-  { value: "all", labelKey: "filter.all" },
-  { value: "prato", labelKey: "filter.pratos" },
-  { value: "bebida", labelKey: "filter.bebidas" },
-  { value: "sobremesa", labelKey: "filter.sobremesas" },
-  { value: "outros", labelKey: "filter.outros" },
+export const categoryFilterOrder: CategoryFilterValue[] = [
+  "cafe_espresso",
+  "chocolate",
+  "sobremesa",
+  "empanada_salgado",
+  "metodos_extracao",
+  "paulistinha",
+  "waffles",
+  "almoco",
+  "espresso_gelado",
+  "chocolate_gelado",
+  "bebida",
+  "drinks_sem_alcool",
+  "chai_latte",
+  "chas",
+  "drinks_especiais",
+  "cervejas",
 ];
 
 interface Props {
@@ -19,23 +54,25 @@ export function CategoryFilter({ selected, onChange }: Props) {
   const { t } = useLanguage();
 
   return (
-    <div className="flex flex-wrap justify-center gap-2" role="tablist" aria-label={t("filter.aria.label")}>
-      {filters.map((f) => (
-        <button
-          key={f.value}
-          role="tab"
-          aria-selected={selected === f.value}
-          aria-label={f.value === "all" ? t("filter.aria.all") : undefined}
-          onClick={() => onChange(f.value)}
-          className={`whitespace-nowrap px-3 py-1.5 rounded-full text-xs font-semibold transition-colors
-            ${selected === f.value
-              ? "bg-primary text-primary-foreground"
-              : "bg-secondary text-secondary-foreground hover:bg-secondary/80"
-            }`}
+    <div className="flex justify-center">
+      <Select value={selected} onValueChange={(v) => onChange(v as CategoryFilterValue)}>
+        <SelectTrigger
+          className="w-full max-w-xs h-10 rounded-full bg-secondary text-secondary-foreground border-0 font-semibold focus:ring-2 focus:ring-ring"
+          aria-label={t("filter.aria.label")}
         >
-          {t(f.labelKey)}
-        </button>
-      ))}
+          <SelectValue placeholder={t("filter.all")} />
+        </SelectTrigger>
+        <SelectContent className="max-h-[60vh]">
+          <SelectItem value="all" aria-label={t("filter.aria.all")}>
+            {t("filter.all")}
+          </SelectItem>
+          {categoryFilterOrder.map((cat) => (
+            <SelectItem key={cat} value={cat}>
+              {t(`category.${cat}`)}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
     </div>
   );
 }
