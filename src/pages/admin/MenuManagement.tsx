@@ -11,11 +11,25 @@ type MenuInsert = Database["public"]["Tables"]["menu_items"]["Insert"];
 type MenuCategory = Database["public"]["Enums"]["menu_category"];
 
 const categories: { value: MenuCategory; label: string }[] = [
+  { value: "cafe_espresso", label: "Café Espresso" },
+  { value: "chocolate", label: "Chocolate" },
+  { value: "sobremesa", label: "Sobremesa" },
+  { value: "empanada_salgado", label: "Empanada e Salgado" },
+  { value: "metodos_extracao", label: "Métodos de Extração" },
+  { value: "paulistinha", label: "Paulistinha" },
+  { value: "waffles", label: "Waffles" },
+  { value: "almoco", label: "Almoço" },
+  { value: "espresso_gelado", label: "Espresso Gelado" },
+  { value: "chocolate_gelado", label: "Chocolate Gelado" },
+  { value: "bebida", label: "Bebidas" },
+  { value: "drinks_sem_alcool", label: "Drinks sem Álcool" },
+  { value: "chai_latte", label: "Chai-Latte" },
+  { value: "chas", label: "Chás" },
+  { value: "drinks_especiais", label: "Drinks Especiais" },
+  { value: "cervejas", label: "Cervejas" },
   { value: "entrada", label: "Entrada" },
   { value: "prato", label: "Prato" },
   { value: "acompanhamento", label: "Acompanhamento" },
-  { value: "bebida", label: "Bebida" },
-  { value: "sobremesa", label: "Sobremesa" },
   { value: "outros", label: "Outros" },
 ];
 
