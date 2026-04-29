@@ -54,11 +54,14 @@ export function CategoryFilter({ selected, onChange }: Props) {
   const { t } = useLanguage();
 
   return (
-    <div className="flex justify-center">
+    <div className="flex flex-wrap items-center justify-center gap-2">
+      <span className="text-sm font-semibold text-foreground" aria-hidden="true">
+        {t("filter.findFavorite")}
+      </span>
       <Select value={selected} onValueChange={(v) => onChange(v as CategoryFilterValue)}>
         <SelectTrigger
           className="w-full max-w-xs h-10 rounded-full bg-secondary text-secondary-foreground border-0 font-semibold focus:ring-2 focus:ring-ring"
-          aria-label={t("filter.aria.label")}
+          aria-label={`${t("filter.findFavorite")}. ${t("filter.aria.label")}`}
         >
           <SelectValue placeholder={t("filter.all")} />
         </SelectTrigger>
