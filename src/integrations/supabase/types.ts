@@ -110,6 +110,20 @@ export type Database = {
         | "entrada"
         | "acompanhamento"
         | "outros"
+        | "cafe_espresso"
+        | "chocolate"
+        | "empanada_salgado"
+        | "metodos_extracao"
+        | "paulistinha"
+        | "waffles"
+        | "almoco"
+        | "espresso_gelado"
+        | "chocolate_gelado"
+        | "drinks_sem_alcool"
+        | "chai_latte"
+        | "chas"
+        | "drinks_especiais"
+        | "cervejas"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -244,6 +258,20 @@ export const Constants = {
         "entrada",
         "acompanhamento",
         "outros",
+        "cafe_espresso",
+        "chocolate",
+        "empanada_salgado",
+        "metodos_extracao",
+        "paulistinha",
+        "waffles",
+        "almoco",
+        "espresso_gelado",
+        "chocolate_gelado",
+        "drinks_sem_alcool",
+        "chai_latte",
+        "chas",
+        "drinks_especiais",
+        "cervejas",
       ],
     },
   },
