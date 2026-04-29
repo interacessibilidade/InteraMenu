@@ -6,7 +6,7 @@ import { MenuItemCard } from "@/components/MenuItemCard";
 import { CallWaiterButton } from "@/components/CallWaiterButton";
 import { AccessibilityToolbar } from "@/components/AccessibilityToolbar";
 import { LanguageSelector } from "@/components/LanguageSelector";
-import { CategoryFilter, type CategoryFilterValue } from "@/components/CategoryFilter";
+import { CategoryFilter, categoryFilterOrder, type CategoryFilterValue } from "@/components/CategoryFilter";
 import { UtensilsCrossed, PlayCircle } from "lucide-react";
 import { useLanguage } from "@/hooks/useLanguage";
 import { TutorialVideoModal } from "@/components/TutorialVideoModal";
@@ -16,15 +16,13 @@ import type { Database } from "@/integrations/supabase/types";
 
 type MenuCategory = Database["public"]["Enums"]["menu_category"];
 
-const categoryOrder: MenuCategory[] = ["entrada", "prato", "acompanhamento", "bebida", "sobremesa", "outros"];
-
-const filterToCategories: Record<CategoryFilterValue, MenuCategory[] | null> = {
-  all: null,
-  prato: ["prato"],
-  bebida: ["bebida"],
-  sobremesa: ["sobremesa"],
-  outros: ["entrada", "acompanhamento", "outros"],
-};
+const categoryOrder: MenuCategory[] = [
+  ...(categoryFilterOrder as MenuCategory[]),
+  "entrada",
+  "prato",
+  "acompanhamento",
+  "outros",
+];
 
 export default function Index() {
   const [searchParams] = useSearchParams();
@@ -49,7 +47,8 @@ export default function Index() {
 
   const { getTranslated, translating } = useMenuTranslation(items);
 
-  const allowedCategories = filterToCategories[filter];
+  const allowedCategories: MenuCategory[] | null =
+    filter === "all" ? null : [filter as MenuCategory];
 
   const grouped = categoryOrder
     .map((cat) => ({
