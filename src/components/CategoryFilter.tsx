@@ -19,7 +19,7 @@ export type CategoryFilterValue =
   | "almoco"
   | "espresso_gelado"
   | "chocolate_gelado"
-  | "bebida"
+  | "bebidas"
   | "drinks_sem_alcool"
   | "chai_latte"
   | "chas"
@@ -37,7 +37,7 @@ export const categoryFilterOrder: CategoryFilterValue[] = [
   "almoco",
   "espresso_gelado",
   "chocolate_gelado",
-  "bebida",
+  "bebidas",
   "drinks_sem_alcool",
   "chai_latte",
   "chas",
