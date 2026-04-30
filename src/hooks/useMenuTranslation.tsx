@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useLanguage } from "./useLanguage";
+import { toast } from "sonner";
 import type { Database } from "@/integrations/supabase/types";
 
 type MenuItem = Database["public"]["Tables"]["menu_items"]["Row"];
@@ -47,6 +48,11 @@ export function useMenuTranslation(items: MenuItem[] | undefined) {
         if (!error && data?.translations) {
           cache[cacheKey] = data.translations;
           setTranslations(data.translations);
+        } else if (data?.code === "ai_credits_exhausted") {
+          toast.error("Tradução indisponível: créditos de IA esgotados no Lovable AI.");
+        } else if (error) {
+          console.error("translate-menu error:", error);
+          toast.error("Não foi possível traduzir o cardápio agora.");
         }
       } catch (e) {
         console.error("Translation failed:", e);
