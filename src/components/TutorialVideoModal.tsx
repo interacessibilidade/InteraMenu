@@ -145,7 +145,7 @@ export function TutorialVideoModal({ open, onClose }: TutorialVideoModalProps) {
               <button
                 ref={closeButtonRef}
                 onClick={onClose}
-                className="p-1 rounded-md hover:bg-secondary transition-colors focus:outline-none focus:ring-2 focus:ring-ring"
+                className="interactive-feedback p-1 rounded-md hover:bg-secondary"
                 aria-label={t("tutorial.close")}
               >
                 <X className="w-5 h-5" />
@@ -179,7 +179,7 @@ export function TutorialVideoModal({ open, onClose }: TutorialVideoModalProps) {
             <div className="flex items-center gap-2 p-3 border-t border-border flex-wrap" role="toolbar" aria-label={t("tutorial.aria.controls")}>
               <button
                 onClick={togglePlay}
-                className="p-2 rounded-md hover:bg-secondary transition-colors focus:outline-none focus:ring-2 focus:ring-ring"
+                className="interactive-feedback p-2 rounded-md hover:bg-secondary"
                 aria-label={playing ? t("tutorial.pause") : t("tutorial.play")}
               >
                 {playing ? <Pause className="w-5 h-5" /> : <Play className="w-5 h-5" />}
@@ -187,7 +187,7 @@ export function TutorialVideoModal({ open, onClose }: TutorialVideoModalProps) {
 
               <button
                 onClick={stopVideo}
-                className="p-2 rounded-md hover:bg-secondary transition-colors focus:outline-none focus:ring-2 focus:ring-ring"
+                className="interactive-feedback p-2 rounded-md hover:bg-secondary"
                 aria-label={t("tutorial.stop")}
               >
                 <RotateCcw className="w-5 h-5" />
@@ -195,7 +195,7 @@ export function TutorialVideoModal({ open, onClose }: TutorialVideoModalProps) {
 
               <button
                 onClick={toggleMute}
-                className="p-2 rounded-md hover:bg-secondary transition-colors focus:outline-none focus:ring-2 focus:ring-ring"
+                className="interactive-feedback p-2 rounded-md hover:bg-secondary"
                 aria-label={muted ? t("tutorial.unmute") : t("tutorial.mute")}
               >
                 {muted ? <VolumeX className="w-5 h-5" /> : <Volume2 className="w-5 h-5" />}
@@ -205,7 +205,7 @@ export function TutorialVideoModal({ open, onClose }: TutorialVideoModalProps) {
               <div className="relative ml-auto">
                 <button
                   onClick={() => setShowSpeedMenu(!showSpeedMenu)}
-                  className="flex items-center gap-1 px-2 py-1 rounded-md text-sm hover:bg-secondary transition-colors focus:outline-none focus:ring-2 focus:ring-ring"
+                  className="interactive-feedback flex items-center gap-1 px-2 py-1 rounded-md text-sm hover:bg-secondary"
                   aria-label={t("tutorial.speed")}
                   aria-expanded={showSpeedMenu}
                   aria-haspopup="true"
@@ -220,7 +220,7 @@ export function TutorialVideoModal({ open, onClose }: TutorialVideoModalProps) {
                         key={s}
                         role="menuitem"
                         onClick={() => changeSpeed(s)}
-                        className={`block w-full text-left px-4 py-1.5 text-sm transition-colors ${
+                        className={`interactive-feedback block w-full text-left px-4 py-1.5 text-sm ${
                           speed === s ? "bg-accent text-accent-foreground font-semibold" : "hover:bg-secondary"
                         }`}
                       >
