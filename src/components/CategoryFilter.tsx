@@ -60,7 +60,7 @@ export function CategoryFilter({ selected, onChange }: Props) {
       </span>
       <Select value={selected} onValueChange={(v) => onChange(v as CategoryFilterValue)}>
         <SelectTrigger
-          className="w-full max-w-xs h-10 rounded-full bg-secondary text-secondary-foreground border-0 font-semibold focus:ring-2 focus:ring-ring"
+          className="interactive-feedback w-full max-w-xs h-10 rounded-full bg-secondary text-secondary-foreground border-0 font-semibold"
           aria-label={`${t("filter.findFavorite")}. ${t("filter.aria.label")}`}
         >
           <SelectValue placeholder={t("filter.all")} />
