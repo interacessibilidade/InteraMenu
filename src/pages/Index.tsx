@@ -11,6 +11,7 @@ import { UtensilsCrossed, PlayCircle } from "lucide-react";
 import { useLanguage } from "@/hooks/useLanguage";
 import { TutorialVideoModal } from "@/components/TutorialVideoModal";
 import { TutorialPrompt } from "@/components/TutorialPrompt";
+import { WelcomeModal } from "@/components/WelcomeModal";
 import { useMenuTranslation } from "@/hooks/useMenuTranslation";
 import type { Database } from "@/integrations/supabase/types";
 
@@ -131,6 +132,7 @@ export default function Index() {
 
       <AccessibilityToolbar />
       <TutorialVideoModal open={tutorialOpen} onClose={() => setTutorialOpen(false)} />
+      <WelcomeModal onWatchVideo={() => setTutorialOpen(true)} />
     </div>
   );
 }
