@@ -18,55 +18,100 @@ export type Database = {
         Row: {
           allergens: string[] | null
           audio_text: string | null
+          audio_text_en: string | null
+          audio_text_es: string | null
+          audio_text_fr: string | null
           category: Database["public"]["Enums"]["menu_category"]
           created_at: string
           description: string | null
+          description_en: string | null
+          description_es: string | null
+          description_fr: string | null
           id: string
           image_alt: string | null
           image_url: string | null
           ingredientes_imagem_url: string | null
           ingredients: string | null
+          ingredients_en: string | null
+          ingredients_es: string | null
+          ingredients_fr: string | null
           is_available: boolean
+          is_translating: boolean
           libras_video_url: string | null
           name: string
+          name_en: string | null
+          name_es: string | null
+          name_fr: string | null
+          needs_translation: boolean
           price: number
           sort_order: number
+          translated_at: string | null
           updated_at: string
         }
         Insert: {
           allergens?: string[] | null
           audio_text?: string | null
+          audio_text_en?: string | null
+          audio_text_es?: string | null
+          audio_text_fr?: string | null
           category?: Database["public"]["Enums"]["menu_category"]
           created_at?: string
           description?: string | null
+          description_en?: string | null
+          description_es?: string | null
+          description_fr?: string | null
           id?: string
           image_alt?: string | null
           image_url?: string | null
           ingredientes_imagem_url?: string | null
           ingredients?: string | null
+          ingredients_en?: string | null
+          ingredients_es?: string | null
+          ingredients_fr?: string | null
           is_available?: boolean
+          is_translating?: boolean
           libras_video_url?: string | null
           name: string
+          name_en?: string | null
+          name_es?: string | null
+          name_fr?: string | null
+          needs_translation?: boolean
           price: number
           sort_order?: number
+          translated_at?: string | null
           updated_at?: string
         }
         Update: {
           allergens?: string[] | null
           audio_text?: string | null
+          audio_text_en?: string | null
+          audio_text_es?: string | null
+          audio_text_fr?: string | null
           category?: Database["public"]["Enums"]["menu_category"]
           created_at?: string
           description?: string | null
+          description_en?: string | null
+          description_es?: string | null
+          description_fr?: string | null
           id?: string
           image_alt?: string | null
           image_url?: string | null
           ingredientes_imagem_url?: string | null
           ingredients?: string | null
+          ingredients_en?: string | null
+          ingredients_es?: string | null
+          ingredients_fr?: string | null
           is_available?: boolean
+          is_translating?: boolean
           libras_video_url?: string | null
           name?: string
+          name_en?: string | null
+          name_es?: string | null
+          name_fr?: string | null
+          needs_translation?: boolean
           price?: number
           sort_order?: number
+          translated_at?: string | null
           updated_at?: string
         }
         Relationships: []

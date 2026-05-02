@@ -17,6 +17,17 @@ type TranslationCache = Record<string, Record<string, TranslatedFields>>;
 
 const cache: TranslationCache = {};
 
+function readCachedFromRow(item: any, lang: "en" | "es" | "fr"): TranslatedFields | null {
+  const name = item[`name_${lang}`];
+  if (!name) return null;
+  return {
+    name,
+    description: item[`description_${lang}`] || item.description || "",
+    ingredients: item[`ingredients_${lang}`] || item.ingredients || "",
+    audio_text: item[`audio_text_${lang}`] || item.audio_text || "",
+  };
+}
+
 export function useMenuTranslation(items: MenuItem[] | undefined) {
   const { language } = useLanguage();
   const [translations, setTranslations] = useState<Record<string, TranslatedFields>>({});
@@ -28,9 +39,34 @@ export function useMenuTranslation(items: MenuItem[] | undefined) {
       return;
     }
 
-    const cacheKey = language;
-    if (cache[cacheKey] && Object.keys(cache[cacheKey]).length >= items.length) {
-      setTranslations(cache[cacheKey]);
+    const lang = language as "en" | "es" | "fr";
+    const cacheKey = lang;
+
+    // 1. Build initial map from DB-cached translations (no AI cost)
+    const initial: Record<string, TranslatedFields> = {};
+    const missing: MenuItem[] = [];
+    for (const item of items) {
+      const cached = readCachedFromRow(item as any, lang);
+      if (cached) {
+        initial[item.id] = cached;
+      } else {
+        missing.push(item);
+      }
+    }
+
+    // Merge with in-memory cache
+    if (cache[cacheKey]) {
+      for (const id of Object.keys(cache[cacheKey])) {
+        if (!initial[id]) initial[id] = cache[cacheKey][id];
+      }
+    }
+
+    setTranslations(initial);
+
+    // Nothing missing: done, no edge call
+    const stillMissing = missing.filter((i) => !initial[i.id]);
+    if (stillMissing.length === 0) {
+      cache[cacheKey] = { ...(cache[cacheKey] || {}), ...initial };
       return;
     }
 
@@ -40,14 +76,15 @@ export function useMenuTranslation(items: MenuItem[] | undefined) {
     (async () => {
       try {
         const { data, error } = await supabase.functions.invoke("translate-menu", {
-          body: { items, targetLang: language },
+          body: { items: stillMissing, targetLang: lang },
         });
 
         if (cancelled) return;
 
         if (!error && data?.translations) {
-          cache[cacheKey] = data.translations;
-          setTranslations(data.translations);
+          const merged = { ...initial, ...data.translations };
+          cache[cacheKey] = merged;
+          setTranslations(merged);
         } else if (data?.code === "ai_credits_exhausted") {
           toast.error("Tradução indisponível: créditos de IA esgotados no Lovable AI.");
         } else if (error) {
