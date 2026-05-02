@@ -105,7 +105,7 @@ export function MenuItemCard({ item }: { item: MenuItem }) {
   return (
     <>
       <article
-        className="bg-card rounded-lg border border-border overflow-hidden shadow-sm hover:shadow-md transition-shadow"
+        className="interactive-feedback bg-card rounded-lg border border-border overflow-hidden shadow-sm hover:shadow-md"
         aria-label={item.name}
       >
         {item.image_url && (
@@ -155,7 +155,7 @@ export function MenuItemCard({ item }: { item: MenuItem }) {
               type="button"
               onClick={togglePlayback}
               disabled={!isSupported}
-              className="flex-1 flex items-center justify-center gap-2 py-2.5 px-3 rounded-md bg-secondary text-secondary-foreground font-medium text-sm hover:bg-secondary/80 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60"
+              className="interactive-feedback flex-1 flex items-center justify-center gap-2 py-2.5 px-3 rounded-md bg-secondary text-secondary-foreground font-medium text-sm hover:bg-secondary/80 disabled:cursor-not-allowed disabled:opacity-60"
               aria-label={audioAriaLabel}
               aria-describedby={audioStatusId}
               aria-pressed={audioState === "playing"}
@@ -177,7 +177,7 @@ export function MenuItemCard({ item }: { item: MenuItem }) {
                 type="button"
                 onClick={handleViewIngredients}
                 disabled={generating}
-                className="flex-1 flex items-center justify-center gap-2 py-2.5 px-3 rounded-md bg-secondary text-secondary-foreground font-medium text-sm hover:bg-secondary/80 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60"
+                className="interactive-feedback flex-1 flex items-center justify-center gap-2 py-2.5 px-3 rounded-md bg-secondary text-secondary-foreground font-medium text-sm hover:bg-secondary/80 disabled:cursor-not-allowed disabled:opacity-60"
                 aria-label={`${t("ingredients.image.aria")} ${item.name}`}
               >
                 <ImageIcon className="w-4 h-4" aria-hidden="true" />
@@ -207,7 +207,7 @@ export function MenuItemCard({ item }: { item: MenuItem }) {
               </h2>
               <button
                 onClick={() => setImageModalOpen(false)}
-                className="p-1.5 rounded-md hover:bg-secondary transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                className="interactive-feedback p-1.5 rounded-md hover:bg-secondary"
                 aria-label={t("ingredients.image.modal.close")}
               >
                 <X className="w-5 h-5" />

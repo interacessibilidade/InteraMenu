@@ -99,7 +99,7 @@ export function AccessibilityToolbar() {
                 ref={index === 0 ? firstItemRef : undefined}
                 role="menuitem"
                 onClick={tool.action}
-                className={`flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium transition-colors
+                className={`interactive-feedback flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium
                   ${(tool as any).isReset ? "bg-primary/15 text-primary hover:bg-primary/25 font-semibold" : tool.active ? "bg-primary text-primary-foreground" : "hover:bg-secondary text-foreground"}`}
                 aria-label={tool.label}
                 aria-pressed={tool.active}
@@ -114,7 +114,7 @@ export function AccessibilityToolbar() {
 
       <button
         onClick={() => setOpen(!open)}
-        className="w-14 h-14 rounded-full bg-primary text-primary-foreground shadow-lg flex items-center justify-center hover:scale-105 transition-transform focus:outline-none focus:ring-4 focus:ring-ring"
+        className="interactive-feedback w-14 h-14 rounded-full bg-primary text-primary-foreground shadow-lg flex items-center justify-center hover:scale-105"
         aria-label={open ? t("accessibility.close") : t("accessibility.open.description")}
         aria-expanded={open}
       >

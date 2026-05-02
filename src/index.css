@@ -123,4 +123,13 @@
   .text-balance {
     text-wrap: balance;
   }
+
+  /* Global interactive feedback for tap (mobile) and keyboard focus.
+     Adds a visible ring, subtle press scale, smooth transition, and
+     a soft background tint on press. Use on any clickable element. */
+  .interactive-feedback {
+    @apply transition-all duration-150 ease-out
+      active:scale-95 active:ring-2 active:ring-primary active:ring-offset-1 active:ring-offset-background active:bg-muted
+      focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background;
+  }
 }
