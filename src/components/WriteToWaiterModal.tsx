@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { MessageSquarePen, X, Eraser } from "lucide-react";
+import { PenSquare, X, Eraser } from "lucide-react";
 import { useLanguage, type Language } from "@/hooks/useLanguage";
 
 const labels: Record<Language, {
@@ -84,7 +84,7 @@ export function WriteToWaiterModal() {
         className="interactive-feedback inline-flex items-center gap-1.5 h-9 px-3 rounded-md border border-input bg-background text-sm font-medium hover:bg-secondary transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
         aria-label={l.ariaOpen}
       >
-        <MessageSquarePen className="w-4 h-4 shrink-0" aria-hidden="true" />
+        <PenSquare className="w-4 h-4 shrink-0" aria-hidden="true" />
         <span className="hidden sm:inline">{l.button}</span>
       </button>
 
@@ -105,7 +105,7 @@ export function WriteToWaiterModal() {
                 id="write-waiter-title"
                 className="text-lg font-bold text-foreground flex items-center gap-2"
               >
-                <MessageSquarePen className="w-5 h-5 text-primary" aria-hidden="true" />
+                <PenSquare className="w-5 h-5 text-primary" aria-hidden="true" />
                 {l.title}
               </h2>
               <button
