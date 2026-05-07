@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Bell, CheckCircle, Clock, ArrowLeft, BarChart3 } from "lucide-react";
 import { Link } from "react-router-dom";
 import type { Database } from "@/integrations/supabase/types";
+import { useTableNames } from "@/hooks/useTableName";
 
 type WaiterCall = Database["public"]["Tables"]["waiter_calls"]["Row"];
 
@@ -17,6 +18,7 @@ export default function WaiterPanel() {
   const [calls, setCalls] = useState<WaiterCall[]>([]);
   const [, setTick] = useState(0);
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const { data: tableNames } = useTableNames();
 
   // Fetch initial pending calls
   useEffect(() => {
@@ -128,7 +130,9 @@ export default function WaiterPanel() {
                 aria-live="assertive"
               >
                 <div className="flex items-center justify-between mb-3">
-                  <span className="text-3xl font-extrabold text-primary">Mesa {call.table_number}</span>
+                  <span className="text-3xl font-extrabold text-primary">
+                    {tableNames?.[call.table_number] || `Mesa ${call.table_number}`}
+                  </span>
                   <Bell className="w-8 h-8 text-primary" aria-hidden="true" />
                 </div>
                 <p className="text-sm text-muted-foreground mb-1">está chamando!</p>
