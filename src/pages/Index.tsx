@@ -85,7 +85,6 @@ export default function Index() {
             <PlayCircle className="w-4 h-4 shrink-0" aria-hidden="true" />
             <span className="hidden sm:inline">{t("tutorial.button")}</span>
           </button>
-          <WriteToWaiterModal />
           <LanguageSelector />
         </div>
       </header>
