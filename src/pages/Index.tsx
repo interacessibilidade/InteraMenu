@@ -85,7 +85,6 @@ export default function Index() {
             <PlayCircle className="w-4 h-4 shrink-0" aria-hidden="true" />
             <span className="hidden sm:inline">{t("tutorial.button")}</span>
           </button>
-          <WriteToWaiterModal />
           <LanguageSelector />
         </div>
       </header>
@@ -95,7 +94,12 @@ export default function Index() {
       {/* Sticky categories + waiter call */}
       <div className="sticky top-[57px] z-20 bg-background/95 backdrop-blur border-b border-border">
         <div className="container py-2 space-y-2">
-          <CategoryFilter selected={filter} onChange={setFilter} />
+          <div className="flex items-center gap-2">
+            <div className="flex-1 min-w-0">
+              <CategoryFilter selected={filter} onChange={setFilter} />
+            </div>
+            <WriteToWaiterModal />
+          </div>
           <CallWaiterButton tableNumber={tableNumber ?? 0} />
         </div>
       </div>
