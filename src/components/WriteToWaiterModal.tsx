@@ -97,7 +97,7 @@ export function WriteToWaiterModal() {
           onClick={handleClose}
         >
           <div
-            className="bg-card rounded-xl shadow-xl w-full max-w-2xl max-h-[95vh] flex flex-col"
+            className="bg-card rounded-xl shadow-xl w-full max-w-2xl max-h-[90dvh] flex flex-col overflow-hidden"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between p-4 border-b border-border">
@@ -129,7 +129,7 @@ export function WriteToWaiterModal() {
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}
                 placeholder={l.placeholder}
-                className="w-full min-h-[40vh] sm:min-h-[260px] rounded-lg border-2 border-input bg-background p-4 text-2xl sm:text-3xl font-bold leading-snug text-foreground placeholder:text-muted-foreground/70 placeholder:font-normal placeholder:text-base focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring resize-none"
+                className="w-full min-h-[180px] sm:min-h-[260px] max-h-[45dvh] rounded-lg border-2 border-input bg-background p-4 text-2xl sm:text-3xl font-bold leading-snug text-foreground placeholder:text-muted-foreground/70 placeholder:font-normal placeholder:text-base focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring resize-none"
                 aria-label={l.placeholder}
               />
             </div>
