@@ -13,6 +13,7 @@ import { TutorialVideoModal } from "@/components/TutorialVideoModal";
 import { TutorialPrompt } from "@/components/TutorialPrompt";
 import { WelcomeModal } from "@/components/WelcomeModal";
 import { useMenuTranslation } from "@/hooks/useMenuTranslation";
+import { useTableName } from "@/hooks/useTableName";
 import type { Database } from "@/integrations/supabase/types";
 
 type MenuCategory = Database["public"]["Enums"]["menu_category"];
@@ -30,6 +31,7 @@ export default function Index() {
   const mesa = searchParams.get("mesa");
   const tableNumber = mesa ? parseInt(mesa, 10) : null;
   const { t, language } = useLanguage();
+  const customTableName = useTableName(tableNumber);
   const [filter, setFilter] = useState<CategoryFilterValue>("all");
   const [tutorialOpen, setTutorialOpen] = useState(false);
 
@@ -71,7 +73,7 @@ export default function Index() {
           <div className="flex-1 min-w-0">
             <h1 className="text-sm font-bold text-foreground leading-tight">{t("header.title")}</h1>
             {tableNumber && (
-              <p className="text-xs text-muted-foreground font-medium">{t("header.table")} {tableNumber}</p>
+              <p className="text-xs text-muted-foreground font-medium">{customTableName || `${t("header.table")} ${tableNumber}`}</p>
             )}
           </div>
           <button
