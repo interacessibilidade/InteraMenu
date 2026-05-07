@@ -105,7 +105,7 @@ export function MenuItemCard({ item }: { item: MenuItem }) {
   return (
     <>
       <article
-        className="interactive-feedback bg-card rounded-lg border border-border overflow-hidden shadow-sm hover:shadow-md"
+        className="bg-card rounded-lg border border-border overflow-hidden shadow-sm hover:shadow-md"
         aria-label={item.name}
       >
         {item.image_url && (
