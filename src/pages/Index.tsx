@@ -12,6 +12,7 @@ import { useLanguage } from "@/hooks/useLanguage";
 import { TutorialVideoModal } from "@/components/TutorialVideoModal";
 import { TutorialPrompt } from "@/components/TutorialPrompt";
 import { WelcomeModal } from "@/components/WelcomeModal";
+import { WriteToWaiterModal } from "@/components/WriteToWaiterModal";
 import { useMenuTranslation } from "@/hooks/useMenuTranslation";
 import { useTableName } from "@/hooks/useTableName";
 import type { Database } from "@/integrations/supabase/types";
@@ -84,6 +85,7 @@ export default function Index() {
             <PlayCircle className="w-4 h-4 shrink-0" aria-hidden="true" />
             <span className="hidden sm:inline">{t("tutorial.button")}</span>
           </button>
+          <WriteToWaiterModal />
           <LanguageSelector />
         </div>
       </header>
