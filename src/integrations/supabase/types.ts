@@ -116,6 +116,27 @@ export type Database = {
         }
         Relationships: []
       }
+      tables: {
+        Row: {
+          created_at: string
+          display_name: string | null
+          table_number: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          display_name?: string | null
+          table_number: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          display_name?: string | null
+          table_number?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       waiter_calls: {
         Row: {
           attended_at: string | null
