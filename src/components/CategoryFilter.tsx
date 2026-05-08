@@ -48,16 +48,19 @@ export const categoryFilterOrder: CategoryFilterValue[] = [
 interface Props {
   selected: CategoryFilterValue;
   onChange: (value: CategoryFilterValue) => void;
+  showLabel?: boolean;
 }
 
-export function CategoryFilter({ selected, onChange }: Props) {
+export function CategoryFilter({ selected, onChange, showLabel = true }: Props) {
   const { t } = useLanguage();
 
   return (
     <div className="flex flex-wrap items-center justify-center gap-2">
-      <span className="text-sm font-semibold text-foreground" aria-hidden="true">
-        {t("filter.findFavorite")}
-      </span>
+      {showLabel && (
+        <span className="text-sm font-semibold text-foreground" aria-hidden="true">
+          {t("filter.findFavorite")}
+        </span>
+      )}
       <Select value={selected} onValueChange={(v) => onChange(v as CategoryFilterValue)}>
         <SelectTrigger
           className="interactive-feedback w-full max-w-xs h-10 rounded-full bg-secondary text-secondary-foreground border-0 font-semibold"

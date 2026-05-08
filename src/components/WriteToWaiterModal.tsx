@@ -81,7 +81,7 @@ export function WriteToWaiterModal() {
         ref={triggerRef}
         type="button"
         onClick={() => setOpen(true)}
-        className="interactive-feedback inline-flex items-center gap-1.5 h-9 px-3 rounded-md border border-input bg-background text-sm font-medium hover:bg-secondary transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        className="interactive-feedback inline-flex items-center gap-1.5 h-10 px-3 rounded-md border border-input bg-background text-sm font-medium hover:bg-secondary transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
         aria-label={l.ariaOpen}
       >
         <PenSquare className="w-4 h-4 shrink-0" aria-hidden="true" />
