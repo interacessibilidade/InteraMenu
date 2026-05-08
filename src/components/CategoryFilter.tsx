@@ -48,9 +48,10 @@ export const categoryFilterOrder: CategoryFilterValue[] = [
 interface Props {
   selected: CategoryFilterValue;
   onChange: (value: CategoryFilterValue) => void;
+  showLabel?: boolean;
 }
 
-export function CategoryFilter({ selected, onChange }: Props) {
+export function CategoryFilter({ selected, onChange, showLabel = true }: Props) {
   const { t } = useLanguage();
 
   return (
