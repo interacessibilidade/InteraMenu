@@ -1,0 +1,1 @@
+UPDATE public.menu_items SET ingredientes_imagem_url = NULL WHERE id = '22ea197c-9ead-4c06-8461-78db9aba94e2';
