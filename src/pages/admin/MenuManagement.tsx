@@ -1,10 +1,30 @@
 import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Plus, Trash2, Edit2, ArrowLeft } from "lucide-react";
+import { Plus, Trash2, Edit2, ArrowLeft, GripVertical } from "lucide-react";
 import { Link } from "react-router-dom";
 import type { Database } from "@/integrations/supabase/types";
 import ImageUpload from "@/components/admin/ImageUpload";
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+  type Announcements,
+} from "@dnd-kit/core";
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  useSortable,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
+import { restrictToVerticalAxis, restrictToParentElement } from "@dnd-kit/modifiers";
+import { toast } from "sonner";
 
 type MenuItem = Database["public"]["Tables"]["menu_items"]["Row"];
 type MenuInsert = Database["public"]["Tables"]["menu_items"]["Insert"];
