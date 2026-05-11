@@ -307,36 +307,229 @@ export default function MenuManagement() {
         {isLoading ? (
           <div className="space-y-3">{[1,2,3].map(i => <div key={i} className="h-16 bg-muted rounded-lg animate-pulse" />)}</div>
         ) : (
-          <div className="space-y-2">
-            {(items || []).map((item) => (
-              <div key={item.id} className="flex items-center gap-4 p-4 bg-card border border-border rounded-lg">
-                {item.image_url && (
-                  <img src={item.image_url} alt={item.image_alt || item.name} className="w-14 h-14 rounded-md object-cover shrink-0" />
-                )}
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2">
-                    <h3 className="font-bold text-foreground truncate">{item.name}</h3>
-                    {!item.is_available && (
-                      <span className="text-xs px-2 py-0.5 rounded-full bg-muted text-muted-foreground">Indisponível</span>
-                    )}
-                  </div>
-                  <p className="text-sm text-muted-foreground">
-                    {categories.find(c => c.value === item.category)?.label} · R$ {Number(item.price).toFixed(2).replace(".", ",")}
-                  </p>
-                </div>
-                <div className="flex gap-2 shrink-0">
-                  <button onClick={() => startEdit(item)} className="p-2 rounded-md hover:bg-secondary transition-colors" aria-label={`Editar ${item.name}`}>
-                    <Edit2 className="w-4 h-4" />
-                  </button>
-                  <button onClick={() => deleteMutation.mutate(item.id)} className="p-2 rounded-md hover:bg-destructive/10 text-destructive transition-colors" aria-label={`Excluir ${item.name}`}>
-                    <Trash2 className="w-4 h-4" />
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
+          <SortableMenuList
+            items={items || []}
+            onReorder={(updates) => reorderMutation.mutate(updates)}
+            onEdit={startEdit}
+            onDelete={(id) => deleteMutation.mutate(id)}
+          />
         )}
       </main>
     </div>
+  );
+}
+
+// ============= Sortable list with category groups =============
+
+interface SortableMenuListProps {
+  items: MenuItem[];
+  onReorder: (updates: { id: string; sort_order: number }[]) => void;
+  onEdit: (item: MenuItem) => void;
+  onDelete: (id: string) => void;
+}
+
+function SortableMenuList({ items, onReorder, onEdit, onDelete }: SortableMenuListProps) {
+  // Group items by category preserving the categories order defined above.
+  const grouped = categories
+    .map((cat) => ({
+      category: cat,
+      items: items
+        .filter((i) => i.category === cat.value)
+        .sort((a, b) => a.sort_order - b.sort_order),
+    }))
+    .filter((g) => g.items.length > 0);
+
+  if (grouped.length === 0) {
+    return (
+      <p className="text-sm text-muted-foreground text-center py-8">
+        Nenhum item cadastrado ainda.
+      </p>
+    );
+  }
+
+  return (
+    <div className="space-y-8">
+      {grouped.map((group) => (
+        <CategoryGroup
+          key={group.category.value}
+          categoryLabel={group.category.label}
+          items={group.items}
+          onReorder={onReorder}
+          onEdit={onEdit}
+          onDelete={onDelete}
+        />
+      ))}
+    </div>
+  );
+}
+
+interface CategoryGroupProps {
+  categoryLabel: string;
+  items: MenuItem[];
+  onReorder: (updates: { id: string; sort_order: number }[]) => void;
+  onEdit: (item: MenuItem) => void;
+  onDelete: (id: string) => void;
+}
+
+function CategoryGroup({ categoryLabel, items, onReorder, onEdit, onDelete }: CategoryGroupProps) {
+  const [localItems, setLocalItems] = useState(items);
+
+  // Sync when external items change (after refetch).
+  useEffect(() => {
+    setLocalItems(items);
+  }, [items]);
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
+  );
+
+  const announcements: Announcements = {
+    onDragStart({ active }) {
+      const item = localItems.find((i) => i.id === active.id);
+      return `Item ${item?.name ?? ""} selecionado para mover. Use as setas para cima e para baixo para reordenar e a tecla espaço para confirmar.`;
+    },
+    onDragOver({ active, over }) {
+      if (!over) return;
+      const activeItem = localItems.find((i) => i.id === active.id);
+      const overIndex = localItems.findIndex((i) => i.id === over.id);
+      return `Item ${activeItem?.name ?? ""} está sobre a posição ${overIndex + 1} de ${localItems.length}.`;
+    },
+    onDragEnd({ active, over }) {
+      const activeItem = localItems.find((i) => i.id === active.id);
+      if (!over) {
+        return `Movimentação de ${activeItem?.name ?? ""} cancelada.`;
+      }
+      const overIndex = localItems.findIndex((i) => i.id === over.id);
+      return `Item ${activeItem?.name ?? ""} movido para a posição ${overIndex + 1} de ${localItems.length}.`;
+    },
+    onDragCancel({ active }) {
+      const activeItem = localItems.find((i) => i.id === active.id);
+      return `Movimentação de ${activeItem?.name ?? ""} cancelada.`;
+    },
+  };
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+    const oldIndex = localItems.findIndex((i) => i.id === active.id);
+    const newIndex = localItems.findIndex((i) => i.id === over.id);
+    if (oldIndex === -1 || newIndex === -1) return;
+    const reordered = arrayMove(localItems, oldIndex, newIndex);
+    setLocalItems(reordered);
+    const updates = reordered.map((it, idx) => ({ id: it.id, sort_order: idx }));
+    onReorder(updates);
+  };
+
+  const headingId = `categoria-${categoryLabel.replace(/\s+/g, "-").toLowerCase()}`;
+
+  return (
+    <section aria-labelledby={headingId}>
+      <h2
+        id={headingId}
+        className="text-lg font-extrabold text-foreground mb-3 pb-2 border-b border-border"
+      >
+        {categoryLabel}
+        <span className="ml-2 text-xs font-normal text-muted-foreground">
+          ({items.length} {items.length === 1 ? "item" : "itens"})
+        </span>
+      </h2>
+      <DndContext
+        sensors={sensors}
+        collisionDetection={closestCenter}
+        onDragEnd={handleDragEnd}
+        modifiers={[restrictToVerticalAxis, restrictToParentElement]}
+        accessibility={{ announcements }}
+      >
+        <SortableContext items={localItems.map((i) => i.id)} strategy={verticalListSortingStrategy}>
+          <ul className="space-y-2" aria-label={`Itens da categoria ${categoryLabel}, arrastáveis`}>
+            {localItems.map((item) => (
+              <SortableItem
+                key={item.id}
+                item={item}
+                onEdit={onEdit}
+                onDelete={onDelete}
+              />
+            ))}
+          </ul>
+        </SortableContext>
+      </DndContext>
+    </section>
+  );
+}
+
+interface SortableItemProps {
+  item: MenuItem;
+  onEdit: (item: MenuItem) => void;
+  onDelete: (id: string) => void;
+}
+
+function SortableItem({ item, onEdit, onDelete }: SortableItemProps) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
+    id: item.id,
+  });
+
+  const style: React.CSSProperties = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.6 : 1,
+    zIndex: isDragging ? 10 : "auto",
+  };
+
+  return (
+    <li
+      ref={setNodeRef}
+      style={style}
+      className={`flex items-center gap-3 p-4 bg-card border border-border rounded-lg ${
+        isDragging ? "shadow-lg ring-2 ring-primary" : ""
+      }`}
+    >
+      <button
+        type="button"
+        {...attributes}
+        {...listeners}
+        className="p-2 -m-2 rounded-md text-muted-foreground hover:bg-secondary hover:text-foreground cursor-grab active:cursor-grabbing focus:outline-none focus-visible:ring-2 focus-visible:ring-ring touch-none"
+        aria-label={`Mover ${item.name}. Pressione espaço para selecionar e use as setas para reordenar.`}
+      >
+        <GripVertical className="w-5 h-5" aria-hidden="true" />
+      </button>
+
+      {item.image_url && (
+        <img
+          src={item.image_url}
+          alt={item.image_alt || item.name}
+          className="w-14 h-14 rounded-md object-cover shrink-0"
+        />
+      )}
+      <div className="flex-1 min-w-0">
+        <div className="flex items-center gap-2">
+          <h3 className="font-bold text-foreground truncate">{item.name}</h3>
+          {!item.is_available && (
+            <span className="text-xs px-2 py-0.5 rounded-full bg-muted text-muted-foreground">
+              Indisponível
+            </span>
+          )}
+        </div>
+        <p className="text-sm text-muted-foreground">
+          R$ {Number(item.price).toFixed(2).replace(".", ",")}
+        </p>
+      </div>
+      <div className="flex gap-2 shrink-0">
+        <button
+          onClick={() => onEdit(item)}
+          className="p-2 rounded-md hover:bg-secondary transition-colors"
+          aria-label={`Editar ${item.name}`}
+        >
+          <Edit2 className="w-4 h-4" />
+        </button>
+        <button
+          onClick={() => onDelete(item.id)}
+          className="p-2 rounded-md hover:bg-destructive/10 text-destructive transition-colors"
+          aria-label={`Excluir ${item.name}`}
+        >
+          <Trash2 className="w-4 h-4" />
+        </button>
+      </div>
+    </li>
   );
 }
