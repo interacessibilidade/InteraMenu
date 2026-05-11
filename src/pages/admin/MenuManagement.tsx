@@ -145,6 +145,21 @@ export default function MenuManagement() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["admin_menu_items"] }),
   });
 
+  const reorderMutation = useMutation({
+    mutationFn: async (updates: { id: string; sort_order: number }[]) => {
+      // Update each item's sort_order. Run in parallel.
+      const results = await Promise.all(
+        updates.map((u) =>
+          supabase.from("menu_items").update({ sort_order: u.sort_order }).eq("id", u.id)
+        )
+      );
+      const firstError = results.find((r) => r.error)?.error;
+      if (firstError) throw firstError;
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["admin_menu_items"] }),
+    onError: () => toast.error("Não foi possível salvar a nova ordem."),
+  });
+
   const startEdit = (item: MenuItem) => {
     setForm({
       name: item.name,
