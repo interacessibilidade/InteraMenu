@@ -172,7 +172,7 @@ export function MenuItemCard({ item }: { item: MenuItem }) {
               {audioStatusText}
             </p>
 
-            {hasIngredients && (
+            {false && hasIngredients && (
               <button
                 type="button"
                 onClick={handleViewIngredients}
