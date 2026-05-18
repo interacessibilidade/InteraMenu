@@ -14,6 +14,12 @@ function timeSince(date: string) {
   return `${m}m ${s.toString().padStart(2, "0")}s`;
 }
 
+const URGENT_THRESHOLD_SECONDS = 180; // 3 minutes
+
+function isUrgent(date: string) {
+  return (Date.now() - new Date(date).getTime()) / 1000 >= URGENT_THRESHOLD_SECONDS;
+}
+
 export default function WaiterPanel() {
   const [calls, setCalls] = useState<WaiterCall[]>([]);
   const [, setTick] = useState(0);
@@ -110,6 +116,15 @@ export default function WaiterPanel() {
           <span className="bg-primary text-primary-foreground text-sm font-bold px-3 py-1 rounded-full">
             {calls.length} chamado{calls.length !== 1 ? "s" : ""}
           </span>
+          {calls.some((c) => isUrgent(c.created_at)) && (
+            <span
+              className="bg-destructive text-destructive-foreground text-sm font-bold px-3 py-1 rounded-full animate-pulse"
+              role="status"
+              aria-live="polite"
+            >
+              ⚠ {calls.filter((c) => isUrgent(c.created_at)).length} urgente{calls.filter((c) => isUrgent(c.created_at)).length !== 1 ? "s" : ""}
+            </span>
+          )}
         </div>
       </header>
 
@@ -122,23 +137,40 @@ export default function WaiterPanel() {
           </div>
         ) : (
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {calls.map((call) => (
+            {[...calls]
+              .sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime())
+              .map((call) => {
+              const urgent = isUrgent(call.created_at);
+              return (
               <div
                 key={call.id}
-                className="bg-card border-2 border-primary rounded-lg p-5 shadow-lg animate-pulse-call"
+                className={`rounded-lg p-5 shadow-lg animate-pulse-call border-2 ${
+                  urgent
+                    ? "bg-destructive/10 border-destructive ring-2 ring-destructive/40"
+                    : "bg-card border-primary"
+                }`}
                 role="alert"
                 aria-live="assertive"
               >
                 <div className="flex items-center justify-between mb-3">
-                  <span className="text-3xl font-extrabold text-primary">
+                  <span className={`text-3xl font-extrabold ${urgent ? "text-destructive" : "text-primary"}`}>
                     {tableNames?.[call.table_number] || `Mesa ${call.table_number}`}
                   </span>
-                  <Bell className="w-8 h-8 text-primary" aria-hidden="true" />
+                  <Bell className={`w-8 h-8 ${urgent ? "text-destructive" : "text-primary"}`} aria-hidden="true" />
                 </div>
-                <p className="text-sm text-muted-foreground mb-1">está chamando!</p>
+                <p className="text-sm text-muted-foreground mb-1">
+                  {urgent ? "está esperando há muito tempo!" : "está chamando!"}
+                </p>
+                {urgent && (
+                  <p className="text-xs font-bold text-destructive mb-2 uppercase tracking-wide">
+                    ⚠ Atenção urgente
+                  </p>
+                )}
                 <div className="flex items-center gap-2 text-sm text-muted-foreground mb-4">
                   <Clock className="w-4 h-4" aria-hidden="true" />
-                  <span>Esperando: {timeSince(call.created_at)}</span>
+                  <span className={urgent ? "text-destructive font-bold" : ""}>
+                    Esperando: {timeSince(call.created_at)}
+                  </span>
                 </div>
                 <p className="text-xs text-muted-foreground mb-4">
                   Chamado às {new Date(call.created_at).toLocaleTimeString("pt-BR")}
@@ -150,7 +182,8 @@ export default function WaiterPanel() {
                   ✓ Atendido
                 </button>
               </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </main>
