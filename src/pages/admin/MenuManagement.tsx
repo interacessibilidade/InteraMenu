@@ -61,6 +61,7 @@ const allergenOptions = [
   { value: "eggs", label: "Ovos" },
   { value: "fish", label: "Peixe" },
   { value: "shellfish", label: "Frutos do mar" },
+  { value: "vegano", label: "Vegano" },
 ];
 
 const emptyForm: Omit<MenuInsert, "id"> = {
@@ -93,6 +94,7 @@ export default function MenuManagement() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
   const [autoAudio, setAutoAudio] = useState(true);
+  const [customAllergen, setCustomAllergen] = useState("");
 
   const { data: items, isLoading } = useQuery({
     queryKey: ["admin_menu_items"],
@@ -188,6 +190,18 @@ export default function MenuManagement() {
     });
   };
 
+  const addCustomAllergen = () => {
+    const val = customAllergen.trim();
+    if (!val) return;
+    const current = form.allergens || [];
+    if (current.includes(val)) {
+      setCustomAllergen("");
+      return;
+    }
+    setForm({ ...form, allergens: [...current, val] });
+    setCustomAllergen("");
+  };
+
   const inputClass = "w-full px-3 py-2.5 rounded-md bg-background border border-input text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-ring";
   const labelClass = "block text-sm font-semibold text-foreground mb-1";
 
@@ -260,6 +274,42 @@ export default function MenuManagement() {
                       {a.label}
                     </button>
                   ))}
+                  {(form.allergens || [])
+                    .filter((a) => !allergenOptions.some((o) => o.value === a))
+                    .map((a) => (
+                      <button
+                        key={a}
+                        type="button"
+                        onClick={() => toggleAllergen(a)}
+                        className="px-3 py-1.5 rounded-full text-xs font-medium transition-colors border bg-destructive text-destructive-foreground border-destructive"
+                        aria-label={`Remover ${a}`}
+                      >
+                        {a} ✕
+                      </button>
+                    ))}
+                </div>
+                <div className="flex gap-2 mt-3">
+                  <input
+                    type="text"
+                    value={customAllergen}
+                    onChange={(e) => setCustomAllergen(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        e.preventDefault();
+                        addCustomAllergen();
+                      }
+                    }}
+                    placeholder="Outro alérgeno..."
+                    className={inputClass}
+                    aria-label="Adicionar outro alérgeno"
+                  />
+                  <button
+                    type="button"
+                    onClick={addCustomAllergen}
+                    className="px-4 py-2 rounded-md bg-secondary text-secondary-foreground font-medium text-sm whitespace-nowrap hover:bg-secondary/80 transition-colors"
+                  >
+                    + Outro
+                  </button>
                 </div>
               </div>
               <ImageUpload
