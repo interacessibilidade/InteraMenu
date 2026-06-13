@@ -2,6 +2,7 @@ import { useRef, useEffect, useState, useCallback, useMemo } from "react";
 import { X, Play, Pause, RotateCcw, Volume2, VolumeX, Gauge } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useLanguage } from "@/hooks/useLanguage";
+import tutorialVideo from "@/assets/tutorial-cardapio.mp4.asset.json";
 
 interface TutorialVideoModalProps {
   open: boolean;
@@ -156,7 +157,7 @@ export function TutorialVideoModal({ open, onClose }: TutorialVideoModalProps) {
             <div className="aspect-[9/16] bg-black flex-1 min-h-0">
               <video
                 ref={videoRef}
-                src="/videos/tutorial-cardapio.mp4"
+                src={tutorialVideo.url}
                 className="w-full h-full object-contain"
                 preload="none"
                 playsInline
