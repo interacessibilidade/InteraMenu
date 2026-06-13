@@ -137,7 +137,7 @@ export function TutorialVideoModal({ open, onClose }: TutorialVideoModalProps) {
             initial={{ scale: 0.9, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0.9, opacity: 0 }}
-            className="bg-card rounded-lg w-full max-w-sm overflow-hidden shadow-2xl max-h-[95vh] flex flex-col"
+            className="bg-card rounded-lg w-full max-w-sm landscape:max-w-3xl overflow-hidden shadow-2xl max-h-[95vh] landscape:max-h-[90vh] flex flex-col"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Header */}
@@ -154,7 +154,7 @@ export function TutorialVideoModal({ open, onClose }: TutorialVideoModalProps) {
             </div>
 
             {/* Video */}
-            <div className="aspect-[9/16] bg-black flex-1 min-h-0">
+            <div className="aspect-[9/16] landscape:aspect-video bg-black flex-1 min-h-0">
               <video
                 ref={videoRef}
                 src={tutorialVideo.url}
