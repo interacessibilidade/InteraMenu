@@ -154,7 +154,7 @@ export function TutorialVideoModal({ open, onClose }: TutorialVideoModalProps) {
             </div>
 
             {/* Video */}
-            <div className="aspect-[9/16] bg-black flex-1 min-h-0">
+            <div className="aspect-[9/16] landscape:aspect-video bg-black flex-1 min-h-0">
               <video
                 ref={videoRef}
                 src={tutorialVideo.url}
