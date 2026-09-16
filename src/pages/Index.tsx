@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useParams, useSearchParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { MenuItemCard } from "@/components/MenuItemCard";
@@ -28,20 +28,41 @@ const categoryOrder: MenuCategory[] = [
 ];
 
 export default function Index() {
+  const { restaurantSlug } = useParams();
   const [searchParams] = useSearchParams();
   const mesa = searchParams.get("mesa");
   const tableNumber = mesa ? parseInt(mesa, 10) : null;
   const { t, language } = useLanguage();
-  const customTableName = useTableName(tableNumber);
   const [filter, setFilter] = useState<CategoryFilterValue>("all");
   const [tutorialOpen, setTutorialOpen] = useState(false);
 
+  // Descobre qual restaurante mostrar a partir do endereço da URL.
+  // Sem slug na URL (site raiz), cai de volta para o único restaurante
+  // legado — mantém o link antigo do Café Infinito Olhar funcionando.
+  const { data: restaurant, isLoading: loadingRestaurant } = useQuery({
+    queryKey: ["restaurant_by_slug", restaurantSlug],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("restaurants")
+        .select("id, name, status")
+        .eq("slug", restaurantSlug || "cafe-infinito-olhar")
+        .maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  const restaurantId = restaurant?.id ?? null;
+  const customTableName = useTableName(tableNumber, restaurantId);
+
   const { data: items, isLoading } = useQuery({
-    queryKey: ["menu_items"],
+    queryKey: ["menu_items", restaurantId],
+    enabled: !!restaurantId,
     queryFn: async () => {
       const { data, error } = await supabase
         .from("menu_items")
         .select("*")
+        .eq("restaurant_id", restaurantId as string)
         .eq("is_available", true)
         .order("sort_order", { ascending: true });
       if (error) throw error;
@@ -53,6 +74,18 @@ export default function Index() {
 
   const allowedCategories: MenuCategory[] | null =
     filter === "all" ? null : [filter as MenuCategory];
+
+  if (!loadingRestaurant && (!restaurant || restaurant.status !== "active")) {
+    return (
+      <div className="flex min-h-screen flex-col items-center justify-center gap-2 bg-background px-4 text-center">
+        <UtensilsCrossed className="mb-2 h-10 w-10 text-muted-foreground" aria-hidden="true" />
+        <h1 className="text-lg font-bold text-foreground">Cardápio não encontrado</h1>
+        <p className="max-w-sm text-sm text-muted-foreground">
+          Não encontramos um cardápio ativo neste endereço. Verifique o link ou o QR Code e tente novamente.
+        </p>
+      </div>
+    );
+  }
 
   const grouped = categoryOrder
     .map((cat) => ({
@@ -105,12 +138,12 @@ export default function Index() {
               <WriteToWaiterModal />
             </div>
           </div>
-          <CallWaiterButton tableNumber={tableNumber ?? 0} />
+          <CallWaiterButton tableNumber={tableNumber ?? 0} restaurantId={restaurantId} />
         </div>
       </div>
 
       <main className="container py-4" role="main">
-        {isLoading || translating ? (
+        {isLoading || translating || loadingRestaurant ? (
           <div className="space-y-4">
             {[1, 2, 3].map((i) => (
               <div key={i} className="h-48 bg-muted rounded-lg animate-pulse" />
