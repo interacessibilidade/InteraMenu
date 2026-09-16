@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { ArrowLeft, BarChart3, Calendar, Printer } from "lucide-react";
 import { Link } from "react-router-dom";
+import { useAuth } from "@/hooks/useAuth";
 
 interface CallRow {
   id: string;
@@ -27,19 +28,22 @@ function calcMinutes(start: string, end: string | null) {
 }
 
 export default function WaiterReport() {
+  const { restaurantId } = useAuth();
   const [dateFilter, setDateFilter] = useState(() => {
     const d = new Date();
     return d.toISOString().split("T")[0];
   });
 
   const { data: calls, isLoading } = useQuery({
-    queryKey: ["waiter_report", dateFilter],
+    queryKey: ["waiter_report", dateFilter, restaurantId],
+    enabled: !!restaurantId,
     queryFn: async () => {
       const startOfDay = `${dateFilter}T00:00:00.000Z`;
       const endOfDay = `${dateFilter}T23:59:59.999Z`;
       const { data, error } = await supabase
         .from("waiter_calls")
         .select("*")
+        .eq("restaurant_id", restaurantId)
         .gte("created_at", startOfDay)
         .lte("created_at", endOfDay)
         .order("created_at", { ascending: false });
