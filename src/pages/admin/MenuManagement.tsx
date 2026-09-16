@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
 import { Plus, Trash2, Edit2, ArrowLeft, GripVertical } from "lucide-react";
 import { Link } from "react-router-dom";
 import type { Database } from "@/integrations/supabase/types";
@@ -90,6 +91,7 @@ function buildAutoAudioText(form: Omit<MenuInsert, "id">) {
 
 export default function MenuManagement() {
   const queryClient = useQueryClient();
+  const { restaurantId } = useAuth();
   const [form, setForm] = useState<Omit<MenuInsert, "id">>(emptyForm);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
@@ -97,9 +99,14 @@ export default function MenuManagement() {
   const [customAllergen, setCustomAllergen] = useState("");
 
   const { data: items, isLoading } = useQuery({
-    queryKey: ["admin_menu_items"],
+    queryKey: ["admin_menu_items", restaurantId],
+    enabled: !!restaurantId,
     queryFn: async () => {
-      const { data, error } = await supabase.from("menu_items").select("*").order("sort_order");
+      const { data, error } = await supabase
+        .from("menu_items")
+        .select("*")
+        .eq("restaurant_id", restaurantId)
+        .order("sort_order");
       if (error) throw error;
       return data;
     },
@@ -126,7 +133,8 @@ export default function MenuManagement() {
         const { error } = await supabase.from("menu_items").update(data).eq("id", editingId);
         if (error) throw error;
       } else {
-        const { error } = await supabase.from("menu_items").insert(data);
+        if (!restaurantId) throw new Error("Restaurante não identificado. Faça login novamente.");
+        const { error } = await supabase.from("menu_items").insert({ ...data, restaurant_id: restaurantId });
         if (error) throw error;
       }
     },
