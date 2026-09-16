@@ -9,6 +9,8 @@ interface AuthContextValue {
   user: User | null;
   role: AppRole | null;
   restaurantId: string | null;
+  restaurantSlug: string | null;
+  restaurantName: string | null;
   loading: boolean;
   isSuperAdmin: boolean;
   signOut: () => Promise<void>;
@@ -20,6 +22,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [role, setRole] = useState<AppRole | null>(null);
   const [restaurantId, setRestaurantId] = useState<string | null>(null);
+  const [restaurantSlug, setRestaurantSlug] = useState<string | null>(null);
+  const [restaurantName, setRestaurantName] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -32,6 +36,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       } else {
         setRole(null);
         setRestaurantId(null);
+        setRestaurantSlug(null);
+        setRestaurantName(null);
         setLoading(false);
       }
     });
@@ -54,16 +60,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setLoading(true);
     const { data, error } = await supabase
       .from("user_roles")
-      .select("role, restaurant_id")
+      .select("role, restaurant_id, restaurants(slug, name)")
       .eq("user_id", userId)
       .maybeSingle();
 
     if (!error && data) {
       setRole(data.role as AppRole);
       setRestaurantId(data.restaurant_id);
+      setRestaurantSlug((data as any).restaurants?.slug ?? null);
+      setRestaurantName((data as any).restaurants?.name ?? null);
     } else {
       setRole(null);
       setRestaurantId(null);
+      setRestaurantSlug(null);
+      setRestaurantName(null);
     }
     setLoading(false);
   }
@@ -77,6 +87,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     user: session?.user ?? null,
     role,
     restaurantId,
+    restaurantSlug,
+    restaurantName,
     loading,
     isSuperAdmin: role === "super_admin",
     signOut,
