@@ -4,6 +4,7 @@ import { Bell, CheckCircle, Clock, ArrowLeft, BarChart3 } from "lucide-react";
 import { Link } from "react-router-dom";
 import type { Database } from "@/integrations/supabase/types";
 import { useTableNames } from "@/hooks/useTableName";
+import { useAuth } from "@/hooks/useAuth";
 
 type WaiterCall = Database["public"]["Tables"]["waiter_calls"]["Row"];
 
@@ -21,31 +22,40 @@ function isUrgent(date: string) {
 }
 
 export default function WaiterPanel() {
+  const { restaurantId } = useAuth();
   const [calls, setCalls] = useState<WaiterCall[]>([]);
   const [, setTick] = useState(0);
   const audioRef = useRef<HTMLAudioElement | null>(null);
-  const { data: tableNames } = useTableNames();
+  const { data: tableNames } = useTableNames(restaurantId);
 
-  // Fetch initial pending calls
+  // Fetch initial pending calls, só do restaurante logado
   useEffect(() => {
+    if (!restaurantId) return;
     const fetchCalls = async () => {
       const { data } = await supabase
         .from("waiter_calls")
         .select("*")
+        .eq("restaurant_id", restaurantId)
         .eq("status", "pending")
         .order("created_at", { ascending: false });
       if (data) setCalls(data);
     };
     fetchCalls();
-  }, []);
+  }, [restaurantId]);
 
-  // Realtime subscription
+  // Realtime subscription, filtrada pelo restaurante logado
   useEffect(() => {
+    if (!restaurantId) return;
     const channel = supabase
-      .channel("waiter-calls-realtime")
+      .channel(`waiter-calls-realtime-${restaurantId}`)
       .on(
         "postgres_changes",
-        { event: "INSERT", schema: "public", table: "waiter_calls" },
+        {
+          event: "INSERT",
+          schema: "public",
+          table: "waiter_calls",
+          filter: `restaurant_id=eq.${restaurantId}`,
+        },
         (payload) => {
           const newCall = payload.new as WaiterCall;
           setCalls((prev) => [newCall, ...prev]);
@@ -57,7 +67,7 @@ export default function WaiterPanel() {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, []);
+  }, [restaurantId]);
 
   // Timer tick every second
   useEffect(() => {
