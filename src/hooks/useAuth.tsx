@@ -1,0 +1,94 @@
+import { createContext, useContext, useEffect, useState, ReactNode } from "react";
+import type { Session, User } from "@supabase/supabase-js";
+import { supabase } from "@/integrations/supabase/client";
+
+type AppRole = "super_admin" | "restaurant_owner" | "staff";
+
+interface AuthContextValue {
+  session: Session | null;
+  user: User | null;
+  role: AppRole | null;
+  restaurantId: string | null;
+  loading: boolean;
+  isSuperAdmin: boolean;
+  signOut: () => Promise<void>;
+}
+
+const AuthContext = createContext<AuthContextValue | undefined>(undefined);
+
+export function AuthProvider({ children }: { children: ReactNode }) {
+  const [session, setSession] = useState<Session | null>(null);
+  const [role, setRole] = useState<AppRole | null>(null);
+  const [restaurantId, setRestaurantId] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    // Carrega a sessão atual e escuta mudanças (login/logout em outras abas também)
+    const { data: authListener } = supabase.auth.onAuthStateChange((_event, newSession) => {
+      setSession(newSession);
+      if (newSession?.user) {
+        // O carregamento do papel é feito à parte, para não travar o listener do Supabase
+        setTimeout(() => loadRole(newSession.user.id), 0);
+      } else {
+        setRole(null);
+        setRestaurantId(null);
+        setLoading(false);
+      }
+    });
+
+    supabase.auth.getSession().then(({ data: { session: current } }) => {
+      setSession(current);
+      if (current?.user) {
+        loadRole(current.user.id);
+      } else {
+        setLoading(false);
+      }
+    });
+
+    return () => {
+      authListener.subscription.unsubscribe();
+    };
+  }, []);
+
+  async function loadRole(userId: string) {
+    setLoading(true);
+    const { data, error } = await supabase
+      .from("user_roles")
+      .select("role, restaurant_id")
+      .eq("user_id", userId)
+      .maybeSingle();
+
+    if (!error && data) {
+      setRole(data.role as AppRole);
+      setRestaurantId(data.restaurant_id);
+    } else {
+      setRole(null);
+      setRestaurantId(null);
+    }
+    setLoading(false);
+  }
+
+  async function signOut() {
+    await supabase.auth.signOut();
+  }
+
+  const value: AuthContextValue = {
+    session,
+    user: session?.user ?? null,
+    role,
+    restaurantId,
+    loading,
+    isSuperAdmin: role === "super_admin",
+    signOut,
+  };
+
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+}
+
+export function useAuth() {
+  const ctx = useContext(AuthContext);
+  if (!ctx) {
+    throw new Error("useAuth precisa ser usado dentro de um AuthProvider");
+  }
+  return ctx;
+}
