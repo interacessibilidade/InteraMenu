@@ -4,8 +4,10 @@ import { ArrowLeft, Printer, Copy, Check, Save } from "lucide-react";
 import { Link } from "react-router-dom";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
 
 export default function QRCodeGenerator() {
+  const { restaurantId, restaurantSlug } = useAuth();
   const [baseUrl, setBaseUrl] = useState(window.location.origin);
   const [tableCount, setTableCount] = useState(10);
   const [copiedId, setCopiedId] = useState<number | null>(null);
@@ -15,15 +17,19 @@ export default function QRCodeGenerator() {
   const tables = Array.from({ length: tableCount }, (_, i) => i + 1);
 
   useEffect(() => {
+    if (!restaurantId) return;
     (async () => {
-      const { data } = await supabase.from("tables").select("*");
+      const { data } = await supabase
+        .from("tables")
+        .select("*")
+        .eq("restaurant_id", restaurantId);
       const map: Record<number, string> = {};
       (data || []).forEach((t: any) => {
         if (t.display_name) map[t.table_number] = t.display_name;
       });
       setNames(map);
     })();
-  }, []);
+  }, [restaurantId]);
 
   const handlePrint = () => window.print();
 
@@ -39,11 +45,15 @@ export default function QRCodeGenerator() {
   };
 
   const handleSaveName = async (num: number) => {
+    if (!restaurantId) return;
     setSavingId(num);
     const display_name = names[num]?.trim() || null;
     const { error } = await supabase
       .from("tables")
-      .upsert({ table_number: num, display_name }, { onConflict: "table_number" });
+      .upsert(
+        { table_number: num, display_name, restaurant_id: restaurantId },
+        { onConflict: "restaurant_id,table_number" }
+      );
     setSavingId(null);
     if (error) {
       toast.error("Erro ao salvar nome");
@@ -95,7 +105,7 @@ export default function QRCodeGenerator() {
 
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
           {tables.map((num) => {
-            const url = `${baseUrl}/?mesa=${num}`;
+            const url = `${baseUrl}/${restaurantSlug || ""}?mesa=${num}`;
             const customName = names[num] || "";
             const displayLabel = customName.trim() || `Mesa ${num}`;
             return (
