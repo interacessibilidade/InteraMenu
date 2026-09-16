@@ -1,10 +1,13 @@
 import { useState, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
 import { Upload, X, Loader2, ImageIcon, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 
 const ACCEPTED_TYPES = ["image/jpeg", "image/jpg", "image/png"];
-const MAX_SIZE = 2 * 1024 * 1024; // 2MB
+const MAX_SIZE = 8 * 1024 * 1024; // 8MB no arquivo original — a compressão reduz bastante antes do envio
+const MAX_DIMENSION = 1280; // lado maior da imagem final, em pixels
+const JPEG_QUALITY = 0.75;
 
 interface ImageUploadProps {
   currentUrl: string;
@@ -13,7 +16,62 @@ interface ImageUploadProps {
   onAltChange: (alt: string) => void;
 }
 
+/**
+ * Redimensiona e recomprime a imagem inteiramente no navegador, antes do upload.
+ * Isso reduz o espaço ocupado no Storage e o tráfego (egress) gerado a cada
+ * vez que um cliente abre o cardápio e a foto é carregada.
+ */
+function compressImage(file: File, maxDimension = MAX_DIMENSION, quality = JPEG_QUALITY): Promise<Blob> {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    const objectUrl = URL.createObjectURL(file);
+
+    img.onload = () => {
+      let { width, height } = img;
+      if (width > maxDimension || height > maxDimension) {
+        if (width > height) {
+          height = Math.round((height * maxDimension) / width);
+          width = maxDimension;
+        } else {
+          width = Math.round((width * maxDimension) / height);
+          height = maxDimension;
+        }
+      }
+
+      const canvas = document.createElement("canvas");
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext("2d");
+
+      if (!ctx) {
+        URL.revokeObjectURL(objectUrl);
+        reject(new Error("Não foi possível processar a imagem neste navegador."));
+        return;
+      }
+
+      ctx.drawImage(img, 0, 0, width, height);
+      canvas.toBlob(
+        (blob) => {
+          URL.revokeObjectURL(objectUrl);
+          if (blob) resolve(blob);
+          else reject(new Error("Falha ao comprimir a imagem."));
+        },
+        "image/jpeg",
+        quality
+      );
+    };
+
+    img.onerror = () => {
+      URL.revokeObjectURL(objectUrl);
+      reject(new Error("Não foi possível carregar a imagem selecionada."));
+    };
+
+    img.src = objectUrl;
+  });
+}
+
 export default function ImageUpload({ currentUrl, onUrlChange, altText, onAltChange }: ImageUploadProps) {
+  const { restaurantId } = useAuth();
   const [uploading, setUploading] = useState(false);
   const [generatingAlt, setGeneratingAlt] = useState(false);
   const [preview, setPreview] = useState<string | null>(null);
@@ -43,7 +101,11 @@ export default function ImageUpload({ currentUrl, onUrlChange, altText, onAltCha
       return;
     }
     if (file.size > MAX_SIZE) {
-      toast.error("Arquivo muito grande. Máximo: 2MB");
+      toast.error("Arquivo muito grande. Máximo: 8MB antes da compressão");
+      return;
+    }
+    if (!restaurantId) {
+      toast.error("Não foi possível identificar o restaurante logado. Faça login novamente.");
       return;
     }
 
@@ -53,12 +115,14 @@ export default function ImageUpload({ currentUrl, onUrlChange, altText, onAltCha
 
     setUploading(true);
     try {
-      const fileName = `${Date.now()}-${file.name.replace(/[^a-zA-Z0-9.-]/g, "_")}`;
-      const filePath = `restaurante-default/${fileName}`;
+      const compressed = await compressImage(file);
+
+      const fileName = `${Date.now()}-${file.name.replace(/[^a-zA-Z0-9.-]/g, "_").replace(/\.[^.]+$/, "")}.jpg`;
+      const filePath = `${restaurantId}/${fileName}`;
 
       const { error: uploadError } = await supabase.storage
         .from("cardapio-imagens")
-        .upload(filePath, file, { upsert: true });
+        .upload(filePath, compressed, { upsert: true, contentType: "image/jpeg" });
 
       if (uploadError) throw uploadError;
 
@@ -70,7 +134,7 @@ export default function ImageUpload({ currentUrl, onUrlChange, altText, onAltCha
       onUrlChange(publicUrl);
       toast.success("Upload concluído");
 
-      // Auto-generate alt text via AI
+      // Gera o texto alternativo automaticamente via IA
       generateAltText(publicUrl);
     } catch (err: any) {
       toast.error("Erro ao enviar imagem: " + (err.message || "tente novamente"));
@@ -160,7 +224,7 @@ export default function ImageUpload({ currentUrl, onUrlChange, altText, onAltCha
       )}
 
       <p className="text-xs text-muted-foreground" aria-live="polite">
-        {uploading ? "Upload em andamento..." : generatingAlt ? "Gerando descrição com IA..." : "Formatos: JPG, PNG · Máximo: 2MB"}
+        {uploading ? "Upload em andamento..." : generatingAlt ? "Gerando descrição com IA..." : "Formatos: JPG, PNG · a imagem é redimensionada e comprimida automaticamente"}
       </p>
 
       <div>
