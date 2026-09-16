@@ -1,11 +1,15 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
-export function useTableNames() {
+export function useTableNames(restaurantId?: string | null) {
   return useQuery({
-    queryKey: ["tables"],
+    queryKey: ["tables", restaurantId],
+    enabled: !!restaurantId,
     queryFn: async () => {
-      const { data, error } = await supabase.from("tables").select("*");
+      const { data, error } = await supabase
+        .from("tables")
+        .select("*")
+        .eq("restaurant_id", restaurantId as string);
       if (error) throw error;
       const map: Record<number, string> = {};
       (data || []).forEach((t: any) => {
@@ -16,8 +20,8 @@ export function useTableNames() {
   });
 }
 
-export function useTableName(tableNumber: number | null | undefined) {
-  const { data } = useTableNames();
+export function useTableName(tableNumber: number | null | undefined, restaurantId?: string | null) {
+  const { data } = useTableNames(restaurantId);
   if (!tableNumber) return null;
   return data?.[tableNumber] || null;
 }
