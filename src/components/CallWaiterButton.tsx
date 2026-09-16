@@ -4,19 +4,26 @@ import { supabase } from "@/integrations/supabase/client";
 import { useLanguage } from "@/hooks/useLanguage";
 import { toast } from "sonner";
 
-export function CallWaiterButton({ tableNumber }: { tableNumber: number | null }) {
+export function CallWaiterButton({
+  tableNumber,
+  restaurantId,
+}: {
+  tableNumber: number | null;
+  restaurantId?: string | null;
+}) {
   const [status, setStatus] = useState<"idle" | "loading" | "sent">("idle");
   const { t } = useLanguage();
   const buttonText = status === "loading" ? t("waiter.calling") : status === "sent" ? t("waiter.called") : t("waiter.call");
 
   const handleCall = async () => {
-    if (!tableNumber || status === "loading") return;
+    if (!tableNumber || !restaurantId || status === "loading") return;
     setStatus("loading");
 
-    // Check for existing pending call from this table
+    // Check for existing pending call from this table, neste restaurante
     const { data: existing } = await supabase
       .from("waiter_calls")
       .select("id")
+      .eq("restaurant_id", restaurantId)
       .eq("table_number", tableNumber)
       .eq("status", "pending")
       .limit(1);
@@ -28,7 +35,7 @@ export function CallWaiterButton({ tableNumber }: { tableNumber: number | null }
       return;
     }
 
-    const { error } = await supabase.from("waiter_calls").insert({ table_number: tableNumber });
+    const { error } = await supabase.from("waiter_calls").insert({ table_number: tableNumber, restaurant_id: restaurantId });
     if (error) {
       console.error("Waiter call failed:", error);
       setStatus("idle");
@@ -42,7 +49,7 @@ export function CallWaiterButton({ tableNumber }: { tableNumber: number | null }
     <button
       type="button"
       onClick={handleCall}
-      disabled={status === "loading" || status === "sent" || !tableNumber}
+      disabled={status === "loading" || status === "sent" || !tableNumber || !restaurantId}
       className={`w-full flex items-center justify-center gap-3 px-4 py-3 rounded-lg font-bold text-base transition-colors focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-80
         ${status === "sent"
           ? "bg-success text-success-foreground"
