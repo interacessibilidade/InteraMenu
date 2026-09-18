@@ -12,6 +12,7 @@ export default function BrandSettings() {
   const { restaurantId } = useAuth();
   const [color, setColor] = useState(DEFAULT_COLOR);
   const [logoUrl, setLogoUrl] = useState<string>("");
+  const [showIngredientsButton, setShowIngredientsButton] = useState(true);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [uploadingLogo, setUploadingLogo] = useState(false);
@@ -23,12 +24,13 @@ export default function BrandSettings() {
     (async () => {
       const { data, error } = await supabase
         .from("restaurants")
-        .select("primary_color, logo_url")
+        .select("primary_color, logo_url, show_ingredients_button")
         .eq("id", restaurantId)
         .single();
       if (!error && data) {
         setColor((data as any).primary_color || DEFAULT_COLOR);
         setLogoUrl((data as any).logo_url || "");
+        setShowIngredientsButton((data as any).show_ingredients_button ?? true);
       }
       setLoading(false);
     })();
@@ -44,7 +46,7 @@ export default function BrandSettings() {
     setSaving(true);
     const { error } = await supabase
       .from("restaurants")
-      .update({ primary_color: color, logo_url: logoUrl || null } as any)
+      .update({ primary_color: color, logo_url: logoUrl || null, show_ingredients_button: showIngredientsButton } as any)
       .eq("id", restaurantId);
     setSaving(false);
 
@@ -212,15 +214,36 @@ export default function BrandSettings() {
             <section aria-label="Pré-visualização">
               <h2 className="mb-2 text-sm font-semibold text-muted-foreground">Pré-visualização</h2>
               <div style={previewStyle} className="flex items-center gap-3 rounded-lg border border-border bg-card p-4">
-                <div className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-full bg-primary">
+                <div
+                  className={`flex h-10 w-10 items-center justify-center overflow-hidden rounded-full ${
+                    logoUrl ? "bg-background border border-border" : "bg-primary"
+                  }`}
+                >
                   {logoUrl ? (
-                    <img src={logoUrl} alt="" className="h-full w-full object-cover" />
+                    <img src={logoUrl} alt="" className="h-full w-full object-contain p-0.5" />
                   ) : (
                     <ImageIcon className="h-4 w-4 text-primary-foreground" aria-hidden="true" />
                   )}
                 </div>
                 <span className="text-sm font-bold text-foreground">Assim vai aparecer no topo do cardápio</span>
               </div>
+            </section>
+
+            <section>
+              <h2 className="mb-1 text-lg font-bold text-foreground">Botão "ver ingredientes"</h2>
+              <p className="mb-3 text-sm text-muted-foreground">
+                Permite que o cliente veja uma foto ilustrativa dos ingredientes de cada prato.
+                Desative se preferir não usar esse recurso no seu cardápio.
+              </p>
+              <label className="flex items-center gap-2 text-sm font-medium text-foreground">
+                <input
+                  type="checkbox"
+                  checked={showIngredientsButton}
+                  onChange={(e) => setShowIngredientsButton(e.target.checked)}
+                  className="h-5 w-5 accent-primary"
+                />
+                Mostrar o botão de ver ingredientes no cardápio
+              </label>
             </section>
 
             <button
