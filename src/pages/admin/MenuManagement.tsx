@@ -6,6 +6,7 @@ import { Plus, Trash2, Edit2, ArrowLeft, GripVertical } from "lucide-react";
 import { Link } from "react-router-dom";
 import type { Database } from "@/integrations/supabase/types";
 import ImageUpload from "@/components/admin/ImageUpload";
+import IngredientImageUpload from "@/components/admin/IngredientImageUpload";
 import {
   DndContext,
   closestCenter,
@@ -74,11 +75,12 @@ const emptyForm: Omit<MenuInsert, "id"> = {
   allergens: [],
   image_url: "",
   image_alt: "",
+  ingredientes_imagem_url: "",
   audio_text: "",
   libras_video_url: "",
   is_available: true,
   sort_order: 0,
-};
+} as any;
 
 function buildAutoAudioText(form: Omit<MenuInsert, "id">) {
   const parts: string[] = [];
@@ -180,11 +182,12 @@ export default function MenuManagement() {
       allergens: item.allergens || [],
       image_url: item.image_url || "",
       image_alt: item.image_alt || "",
+      ingredientes_imagem_url: (item as any).ingredientes_imagem_url || "",
       audio_text: item.audio_text || "",
       libras_video_url: item.libras_video_url || "",
       is_available: item.is_available,
       sort_order: item.sort_order,
-    });
+    } as any);
     setEditingId(item.id);
     setAutoAudio(false); // Don't overwrite existing audio text
     setShowForm(true);
@@ -325,6 +328,12 @@ export default function MenuManagement() {
                 onUrlChange={(url) => setForm((prev) => ({ ...prev, image_url: url }))}
                 altText={form.image_alt || ""}
                 onAltChange={(alt) => setForm((prev) => ({ ...prev, image_alt: alt }))}
+              />
+              <IngredientImageUpload
+                currentUrl={(form as any).ingredientes_imagem_url || ""}
+                onUrlChange={(url) =>
+                  setForm((prev) => ({ ...(prev as any), ingredientes_imagem_url: url } as any))
+                }
               />
               <div className="sm:col-span-2">
                 <label className={labelClass}>Texto para Áudio</label>
