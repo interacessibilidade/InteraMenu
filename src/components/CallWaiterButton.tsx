@@ -52,8 +52,8 @@ export function CallWaiterButton({
       disabled={status === "loading" || status === "sent" || !tableNumber || !restaurantId}
       className={`w-full flex items-center justify-center gap-3 px-4 py-3 rounded-lg font-bold text-base transition-colors focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-80
         ${status === "sent"
-          ? "bg-success text-neutral-900"
-          : "bg-primary text-primary-foreground hover:opacity-90"
+          ? "bg-neutral-300 text-neutral-900"
+          : "bg-neutral-800 text-white hover:bg-neutral-900"
         }`}
       aria-label={buttonText}
       aria-live="polite"
