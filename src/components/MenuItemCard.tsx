@@ -26,7 +26,13 @@ function buildAudioText(item: MenuItem, language: Language) {
     .join(". ");
 }
 
-export function MenuItemCard({ item }: { item: MenuItem }) {
+export function MenuItemCard({
+  item,
+  showIngredientsButton = true,
+}: {
+  item: MenuItem;
+  showIngredientsButton?: boolean;
+}) {
   const { t, language } = useLanguage();
   const audioText = buildAudioText(item, language);
   const { audioState, isSupported, togglePlayback } = useSpeechSynthesis({
@@ -42,7 +48,7 @@ export function MenuItemCard({ item }: { item: MenuItem }) {
   );
   const [generating, setGenerating] = useState(false);
 
-  const hasIngredients = !!item.ingredients;
+  const hasIngredients = !!item.ingredients && showIngredientsButton;
 
   const handleViewIngredients = async () => {
     if (ingredientImageUrl) {
@@ -109,11 +115,11 @@ export function MenuItemCard({ item }: { item: MenuItem }) {
         aria-label={item.name}
       >
         {item.image_url && (
-          <div className="aspect-[16/10] overflow-hidden">
+          <div className="aspect-[16/10] overflow-hidden bg-muted flex items-center justify-center">
             <img
               src={item.image_url}
               alt={item.image_alt || item.name}
-              className="w-full h-full object-cover"
+              className="w-full h-full object-contain"
               loading="lazy"
             />
           </div>
