@@ -115,11 +115,11 @@ export function MenuItemCard({
         aria-label={item.name}
       >
         {item.image_url && (
-          <div className="aspect-[16/10] overflow-hidden bg-muted flex items-center justify-center">
+          <div className="aspect-[16/10] overflow-hidden">
             <img
               src={item.image_url}
               alt={item.image_alt || item.name}
-              className="w-full h-full object-contain"
+              className="w-full h-full object-cover"
               loading="lazy"
             />
           </div>
