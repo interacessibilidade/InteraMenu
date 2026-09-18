@@ -12,7 +12,6 @@ export default function BrandSettings() {
   const { restaurantId } = useAuth();
   const [color, setColor] = useState(DEFAULT_COLOR);
   const [logoUrl, setLogoUrl] = useState<string>("");
-  const [showIngredientsButton, setShowIngredientsButton] = useState(true);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [uploadingLogo, setUploadingLogo] = useState(false);
@@ -24,13 +23,12 @@ export default function BrandSettings() {
     (async () => {
       const { data, error } = await supabase
         .from("restaurants")
-        .select("primary_color, logo_url, show_ingredients_button")
+        .select("primary_color, logo_url")
         .eq("id", restaurantId)
         .single();
       if (!error && data) {
         setColor((data as any).primary_color || DEFAULT_COLOR);
         setLogoUrl((data as any).logo_url || "");
-        setShowIngredientsButton((data as any).show_ingredients_button ?? true);
       }
       setLoading(false);
     })();
@@ -46,7 +44,7 @@ export default function BrandSettings() {
     setSaving(true);
     const { error } = await supabase
       .from("restaurants")
-      .update({ primary_color: color, logo_url: logoUrl || null, show_ingredients_button: showIngredientsButton } as any)
+      .update({ primary_color: color, logo_url: logoUrl || null } as any)
       .eq("id", restaurantId);
     setSaving(false);
 
@@ -227,23 +225,6 @@ export default function BrandSettings() {
                 </div>
                 <span className="text-sm font-bold text-foreground">Assim vai aparecer no topo do cardápio</span>
               </div>
-            </section>
-
-            <section>
-              <h2 className="mb-1 text-lg font-bold text-foreground">Botão "ver ingredientes"</h2>
-              <p className="mb-3 text-sm text-muted-foreground">
-                Permite que o cliente veja uma foto ilustrativa dos ingredientes de cada prato.
-                Desative se preferir não usar esse recurso no seu cardápio.
-              </p>
-              <label className="flex items-center gap-2 text-sm font-medium text-foreground">
-                <input
-                  type="checkbox"
-                  checked={showIngredientsButton}
-                  onChange={(e) => setShowIngredientsButton(e.target.checked)}
-                  className="h-5 w-5 accent-primary"
-                />
-                Mostrar o botão de ver ingredientes no cardápio
-              </label>
             </section>
 
             <button
