@@ -7,9 +7,12 @@ import { LanguageProvider } from "@/hooks/useLanguage";
 import { AuthProvider } from "@/hooks/useAuth";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import Index from "./pages/Index";
+import Landing from "./pages/Landing";
 import NotFound from "./pages/NotFound";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
+import ForgotPassword from "./pages/ForgotPassword";
+import ResetPassword from "./pages/ResetPassword";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import WaiterPanel from "./pages/admin/WaiterPanel";
 import MenuManagement from "./pages/admin/MenuManagement";
@@ -28,11 +31,13 @@ const App = () => (
             <Sonner />
             <BrowserRouter>
               <Routes>
-                <Route path="/" element={<Index />} />
+                <Route path="/" element={<Landing />} />
                 <Route path="/:restaurantSlug" element={<Index />} />
 
                 <Route path="/login" element={<Login />} />
                 <Route path="/cadastro" element={<Signup />} />
+                <Route path="/esqueci-senha" element={<ForgotPassword />} />
+                <Route path="/redefinir-senha" element={<ResetPassword />} />
 
                 <Route
                   path="/admin"
@@ -94,4 +99,3 @@ const App = () => (
 );
 
 export default App;
-
