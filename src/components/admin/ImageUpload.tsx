@@ -159,6 +159,11 @@ export default function ImageUpload({ currentUrl, onUrlChange, altText, onAltCha
   return (
     <div className="sm:col-span-2 space-y-3">
       <label className={labelClass}>Imagem do prato</label>
+      <p className="text-xs text-muted-foreground">
+        Fique à vontade para enviar qualquer foto — ela nunca é cortada. Mas, para preencher bem o
+        espaço sem sobrar borda, fotos na <strong>horizontal</strong>, com o prato centralizado
+        (proporção aproximada de 16:10, por exemplo 1600×1000px), costumam ficar melhores.
+      </p>
 
       {displayUrl ? (
         <div className="relative inline-block">
