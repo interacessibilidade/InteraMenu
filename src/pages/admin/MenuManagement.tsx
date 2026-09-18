@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -94,6 +94,7 @@ function buildAutoAudioText(form: Omit<MenuInsert, "id">) {
 export default function MenuManagement() {
   const queryClient = useQueryClient();
   const { restaurantId } = useAuth();
+  const formRef = useRef<HTMLDivElement>(null);
   const [form, setForm] = useState<Omit<MenuInsert, "id">>(emptyForm);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
@@ -191,6 +192,9 @@ export default function MenuManagement() {
     setEditingId(item.id);
     setAutoAudio(false); // Don't overwrite existing audio text
     setShowForm(true);
+    requestAnimationFrame(() => {
+      formRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
   };
 
   const toggleAllergen = (val: string) => {
@@ -226,7 +230,15 @@ export default function MenuManagement() {
           <h1 className="text-xl font-extrabold text-foreground">Cadastro de Itens</h1>
           <div className="ml-auto flex gap-2">
             <button
-              onClick={() => { setShowForm(true); setEditingId(null); setForm(emptyForm); setAutoAudio(true); }}
+              onClick={() => {
+                setShowForm(true);
+                setEditingId(null);
+                setForm(emptyForm);
+                setAutoAudio(true);
+                requestAnimationFrame(() => {
+                  formRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+                });
+              }}
               className="flex items-center gap-2 px-4 py-2 rounded-md bg-primary text-primary-foreground font-medium text-sm hover:bg-primary/90 transition-colors"
             >
               <Plus className="w-4 h-4" /> Novo Item
@@ -237,7 +249,7 @@ export default function MenuManagement() {
 
       <main className="container py-6">
         {showForm && (
-          <div className="bg-card border border-border rounded-lg p-6 mb-8 shadow-sm">
+          <div ref={formRef} className="bg-card border border-border rounded-lg p-6 mb-8 shadow-sm">
             <h2 className="text-lg font-bold text-foreground mb-4">
               {editingId ? "Editar Item" : "Novo Item"}
             </h2>
