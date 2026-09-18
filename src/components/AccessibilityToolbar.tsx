@@ -114,11 +114,11 @@ export function AccessibilityToolbar() {
 
       <button
         onClick={() => setOpen(!open)}
-        className="interactive-feedback w-14 h-14 rounded-full bg-primary text-primary-foreground shadow-lg flex items-center justify-center hover:scale-105"
+        className="interactive-feedback w-14 h-14 rounded-full bg-white border-2 border-primary shadow-lg flex items-center justify-center hover:scale-105 p-1.5"
         aria-label={open ? t("accessibility.close") : t("accessibility.open.description")}
         aria-expanded={open}
       >
-        <img src="/accessibility-icon.png" alt="" className="w-7 h-7" />
+        <img src="/accessibility-icon.png" alt="" className="w-full h-full object-contain" />
       </button>
     </div>
   );
