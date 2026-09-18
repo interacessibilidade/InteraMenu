@@ -16,6 +16,7 @@ import { WriteToWaiterModal } from "@/components/WriteToWaiterModal";
 import { useMenuTranslation } from "@/hooks/useMenuTranslation";
 import { useTableName } from "@/hooks/useTableName";
 import type { Database } from "@/integrations/supabase/types";
+import { restaurantThemeStyle } from "@/lib/restaurantTheme";
 
 type MenuCategory = Database["public"]["Enums"]["menu_category"];
 
@@ -44,7 +45,7 @@ export default function Index() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("restaurants")
-        .select("id, name, status")
+        .select("id, name, status, primary_color, logo_url")
         .eq("slug", restaurantSlug || "cafe-infinito-olhar")
         .maybeSingle();
       if (error) throw error;
@@ -97,12 +98,21 @@ export default function Index() {
     .filter((g) => !allowedCategories || allowedCategories.includes(g.category));
 
   return (
-    <div key={language} className="min-h-screen bg-background pb-8" lang={language === "en" ? "en-US" : language === "es" ? "es-ES" : language === "fr" ? "fr-FR" : "pt-BR"}>
+    <div
+      key={language}
+      style={restaurantThemeStyle((restaurant as any)?.primary_color)}
+      className="min-h-screen bg-background pb-8"
+      lang={language === "en" ? "en-US" : language === "es" ? "es-ES" : language === "fr" ? "fr-FR" : "pt-BR"}
+    >
       {/* Header */}
       <header className="sticky top-0 z-30 bg-background/95 backdrop-blur border-b border-border">
         <div className="container py-3 flex items-center gap-3">
-          <div className="w-9 h-9 rounded-full bg-primary flex items-center justify-center">
-            <UtensilsCrossed className="w-4 h-4 text-primary-foreground" aria-hidden="true" />
+          <div className="w-9 h-9 rounded-full bg-primary flex items-center justify-center overflow-hidden">
+            {(restaurant as any)?.logo_url ? (
+              <img src={(restaurant as any).logo_url} alt="" className="w-full h-full object-cover" />
+            ) : (
+              <UtensilsCrossed className="w-4 h-4 text-primary-foreground" aria-hidden="true" />
+            )}
           </div>
           <div className="flex-1 min-w-0">
             <h1 className="text-sm font-bold text-foreground leading-tight">{t("header.title")}</h1>
