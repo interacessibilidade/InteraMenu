@@ -18,6 +18,7 @@ import WaiterPanel from "./pages/admin/WaiterPanel";
 import MenuManagement from "./pages/admin/MenuManagement";
 import QRCodeGenerator from "./pages/admin/QRCodeGenerator";
 import WaiterReport from "./pages/admin/WaiterReport";
+import BrandSettings from "./pages/admin/BrandSettings";
 import SuperAdminDashboard from "./pages/admin/SuperAdminDashboard";
 
 const queryClient = new QueryClient();
@@ -76,6 +77,14 @@ const App = () => (
                   element={
                     <ProtectedRoute>
                       <WaiterReport />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/admin/identidade"
+                  element={
+                    <ProtectedRoute>
+                      <BrandSettings />
                     </ProtectedRoute>
                   }
                 />
