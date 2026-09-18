@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
-import { UtensilsCrossed, Bell, QrCode, BarChart3 } from "lucide-react";
+import { UtensilsCrossed, Bell, QrCode, BarChart3, LogOut, ShieldCheck } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
 
 const navItems = [
   {
@@ -33,12 +34,38 @@ const navItems = [
 ];
 
 export default function AdminDashboard() {
+  const { restaurantName, isSuperAdmin, signOut, user } = useAuth();
+
   return (
     <div className="min-h-screen bg-background">
       <header className="sticky top-0 z-30 bg-background/95 backdrop-blur border-b border-border">
-        <div className="container py-5 text-center">
+        <div className="container flex flex-col items-center gap-2 py-5 text-center">
+          <div className="flex w-full items-center justify-between gap-2 px-2">
+            {isSuperAdmin ? (
+              <Link
+                to="/superadmin"
+                className="inline-flex items-center gap-1 text-sm font-medium text-primary underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              >
+                <ShieldCheck className="h-4 w-4" aria-hidden="true" />
+                Painel geral
+              </Link>
+            ) : (
+              <span />
+            )}
+            <button
+              type="button"
+              onClick={() => signOut()}
+              className="inline-flex items-center gap-1 text-sm font-medium text-muted-foreground hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            >
+              <LogOut className="h-4 w-4" aria-hidden="true" />
+              Sair
+            </button>
+          </div>
           <h1 className="text-2xl font-extrabold text-foreground">Gestão do Cardápio</h1>
-          <p className="text-sm text-muted-foreground mt-1">Painel administrativo do restaurante</p>
+          <p className="text-sm font-medium text-primary" aria-label={`Você está conectada como ${restaurantName || user?.email}`}>
+            {restaurantName ? restaurantName : isSuperAdmin ? "Administração geral" : user?.email}
+          </p>
+          <p className="text-sm text-muted-foreground">Painel administrativo do restaurante</p>
         </div>
       </header>
 
