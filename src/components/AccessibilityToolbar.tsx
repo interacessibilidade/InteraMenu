@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from "react";
-import { Accessibility, Plus, Minus, Eye, Palette, Type, RotateCcw } from "lucide-react";
+import { Plus, Minus, Eye, Palette, Type, RotateCcw } from "lucide-react";
+import { AccessibilityIcon } from "@/components/AccessibilityIcon";
 import { useAccessibility } from "@/hooks/useAccessibility";
 import { useLanguage } from "@/hooks/useLanguage";
 import { motion, AnimatePresence } from "framer-motion";
@@ -118,7 +119,7 @@ export function AccessibilityToolbar() {
         aria-label={open ? t("accessibility.close") : t("accessibility.open.description")}
         aria-expanded={open}
       >
-        <Accessibility className="w-7 h-7" />
+        <AccessibilityIcon className="w-7 h-7" />
       </button>
     </div>
   );
