@@ -45,7 +45,7 @@ export default function Index() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("restaurants")
-        .select("id, name, status, primary_color, logo_url")
+        .select("id, name, status, primary_color, logo_url, show_ingredients_button")
         .eq("slug", restaurantSlug || "cafe-infinito-olhar")
         .maybeSingle();
       if (error) throw error;
@@ -107,9 +107,17 @@ export default function Index() {
       {/* Header */}
       <header className="sticky top-0 z-30 bg-background/95 backdrop-blur border-b border-border">
         <div className="container py-3 flex items-center gap-3">
-          <div className="w-9 h-9 rounded-full bg-primary flex items-center justify-center overflow-hidden">
+          <div
+            className={`w-9 h-9 rounded-full flex items-center justify-center overflow-hidden ${
+              (restaurant as any)?.logo_url ? "bg-background border border-border" : "bg-primary"
+            }`}
+          >
             {(restaurant as any)?.logo_url ? (
-              <img src={(restaurant as any).logo_url} alt="" className="w-full h-full object-cover" />
+              <img
+                src={(restaurant as any).logo_url}
+                alt=""
+                className="w-full h-full object-contain p-0.5"
+              />
             ) : (
               <UtensilsCrossed className="w-4 h-4 text-primary-foreground" aria-hidden="true" />
             )}
@@ -177,7 +185,11 @@ export default function Index() {
                 </h2>
                 <div className="grid gap-4 sm:grid-cols-2">
                   {group.items.map((item) => (
-                    <MenuItemCard key={item.id} item={item} />
+                    <MenuItemCard
+                      key={item.id}
+                      item={item}
+                      showIngredientsButton={(restaurant as any)?.show_ingredients_button ?? true}
+                    />
                   ))}
                 </div>
               </section>
