@@ -17,6 +17,15 @@ function slugify(text: string) {
     .replace(/-+/g, "-");
 }
 
+function isPasswordStrong(password: string) {
+  return (
+    password.length >= 8 &&
+    /[a-z]/.test(password) &&
+    /[A-Z]/.test(password) &&
+    /[0-9]/.test(password)
+  );
+}
+
 export default function Signup() {
   const navigate = useNavigate();
   const [restaurantName, setRestaurantName] = useState("");
@@ -51,8 +60,8 @@ export default function Signup() {
       setError("Preencha todos os campos para continuar.");
       return;
     }
-    if (password.length < 8) {
-      setError("A senha precisa ter pelo menos 8 caracteres.");
+    if (!isPasswordStrong(password)) {
+      setError("A senha precisa ter pelo menos 8 caracteres, com letra maiúscula, minúscula e número.");
       return;
     }
 
@@ -184,7 +193,7 @@ export default function Signup() {
               </button>
             </div>
             <p id="signup-password-hint" className="mt-1 text-xs text-muted-foreground">
-              Mínimo de 8 caracteres.
+              Mínimo de 8 caracteres, com letra maiúscula, minúscula e número.
             </p>
           </div>
 
