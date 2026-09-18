@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { UtensilsCrossed, Bell, QrCode, BarChart3, LogOut, ShieldCheck } from "lucide-react";
+import { UtensilsCrossed, Bell, QrCode, BarChart3, LogOut, ShieldCheck, Palette } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 
 const navItems = [
@@ -30,6 +30,13 @@ const navItems = [
     to: "/admin/relatorio",
     icon: BarChart3,
     ariaLabel: "Ir para relatórios de atendimento",
+  },
+  {
+    title: "Identidade Visual",
+    description: "Escolher a cor e o logo do seu cardápio",
+    to: "/admin/identidade",
+    icon: Palette,
+    ariaLabel: "Ir para configuração de identidade visual",
   },
 ];
 
