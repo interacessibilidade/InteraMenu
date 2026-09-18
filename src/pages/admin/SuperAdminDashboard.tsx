@@ -1,7 +1,9 @@
 import { useEffect, useState, useCallback } from "react";
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
+import { LogOut } from "lucide-react";
 import { toast } from "sonner";
 
 interface RestaurantRow {
@@ -14,6 +16,7 @@ interface RestaurantRow {
 }
 
 export default function SuperAdminDashboard() {
+  const { user, signOut } = useAuth();
   const [restaurants, setRestaurants] = useState<RestaurantRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [statusMessage, setStatusMessage] = useState("");
@@ -64,14 +67,26 @@ export default function SuperAdminDashboard() {
         <div className="container flex items-center justify-between py-5">
           <div>
             <h1 className="text-2xl font-extrabold text-foreground">Restaurantes cadastrados</h1>
-            <p className="text-sm text-muted-foreground">Painel geral do InteraMenu</p>
+            <p className="text-sm text-muted-foreground">
+              Painel geral do InteraMenu · conectada como {user?.email}
+            </p>
           </div>
-          <Link
-            to="/admin"
-            className="text-sm font-medium text-primary underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-          >
-            Voltar
-          </Link>
+          <div className="flex items-center gap-4">
+            <Link
+              to="/admin"
+              className="text-sm font-medium text-primary underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            >
+              Voltar
+            </Link>
+            <button
+              type="button"
+              onClick={() => signOut()}
+              className="inline-flex items-center gap-1 text-sm font-medium text-muted-foreground hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            >
+              <LogOut className="h-4 w-4" aria-hidden="true" />
+              Sair
+            </button>
+          </div>
         </div>
       </header>
 
