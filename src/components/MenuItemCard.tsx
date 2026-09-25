@@ -149,7 +149,7 @@ export function MenuItemCard({
 
           {item.ingredients && (
             <p className="text-xs text-muted-foreground leading-relaxed">
-              <span className="sr-only">Ingredientes: </span>
+              <span className="font-semibold text-foreground/70">Ingredientes: </span>
               {item.ingredients}
             </p>
           )}
