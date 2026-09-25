@@ -137,11 +137,11 @@ export function TutorialVideoModal({ open, onClose }: TutorialVideoModalProps) {
             initial={{ scale: 0.9, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0.9, opacity: 0 }}
-            className="bg-card rounded-lg w-full max-w-sm landscape:max-w-3xl overflow-hidden shadow-2xl max-h-[95vh] landscape:max-h-[90vh] flex flex-col"
+            className="bg-card rounded-lg w-full max-w-sm landscape:max-w-3xl overflow-hidden shadow-2xl max-h-[85vh] flex flex-col"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Header */}
-            <div className="flex items-center justify-between p-4 border-b border-border">
+            <div className="flex items-center justify-between p-3 border-b border-border shrink-0">
               <h2 className="font-bold text-foreground">{t("tutorial.title")}</h2>
               <button
                 ref={closeButtonRef}
@@ -154,11 +154,11 @@ export function TutorialVideoModal({ open, onClose }: TutorialVideoModalProps) {
             </div>
 
             {/* Video */}
-            <div className="aspect-[9/16] landscape:aspect-video bg-black flex-1 min-h-0">
+            <div className="bg-black flex-1 min-h-0 flex items-center justify-center">
               <video
                 ref={videoRef}
                 src={tutorialVideo.url}
-                className="w-full h-full object-contain"
+                className="max-w-full max-h-full w-auto h-auto object-contain"
                 preload="none"
                 playsInline
                 tabIndex={0}
@@ -177,7 +177,7 @@ export function TutorialVideoModal({ open, onClose }: TutorialVideoModalProps) {
             </div>
 
             {/* Controls */}
-            <div className="flex items-center gap-2 p-3 border-t border-border flex-wrap" role="toolbar" aria-label={t("tutorial.aria.controls")}>
+            <div className="flex items-center gap-2 p-3 border-t border-border flex-wrap shrink-0" role="toolbar" aria-label={t("tutorial.aria.controls")}>
               <button
                 onClick={togglePlay}
                 className="interactive-feedback p-2 rounded-md hover:bg-secondary"
