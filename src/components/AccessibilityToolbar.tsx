@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, type KeyboardEvent } from "react";
 import { Plus, Minus, Eye, Palette, Type, RotateCcw } from "lucide-react";
 import { useAccessibility } from "@/hooks/useAccessibility";
 import { useLanguage } from "@/hooks/useLanguage";
@@ -75,6 +75,32 @@ export function AccessibilityToolbar() {
     { icon: RotateCcw, label: t("accessibility.reset"), action: handleReset, active: false, isReset: true },
   ];
 
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  const handleMenuKeyDown = (e: KeyboardEvent) => {
+    const menu = menuRef.current;
+    if (!menu) return;
+    const items = Array.from(menu.querySelectorAll<HTMLButtonElement>('[role="menuitem"]'));
+    const currentIndex = items.findIndex((el) => el === document.activeElement);
+
+    if (e.key === "ArrowDown") {
+      e.preventDefault();
+      items[(currentIndex + 1) % items.length]?.focus();
+    } else if (e.key === "ArrowUp") {
+      e.preventDefault();
+      items[(currentIndex - 1 + items.length) % items.length]?.focus();
+    } else if (e.key === "Home") {
+      e.preventDefault();
+      items[0]?.focus();
+    } else if (e.key === "End") {
+      e.preventDefault();
+      items[items.length - 1]?.focus();
+    } else if (e.key === "Escape") {
+      e.preventDefault();
+      setOpen(false);
+    }
+  };
+
   return (
     <div ref={containerRef} className="fixed bottom-4 right-4 z-50 flex flex-col items-end gap-2">
       {/* Live region for screen reader feedback */}
@@ -91,6 +117,8 @@ export function AccessibilityToolbar() {
             className="bg-card border border-border rounded-lg shadow-xl p-3 flex flex-col gap-2 min-w-[220px]"
             role="menu"
             aria-label={t("accessibility.title")}
+            ref={menuRef}
+            onKeyDown={handleMenuKeyDown}
           >
             <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-1">{t("accessibility.title")}</p>
             {tools.map((tool, index) => (
@@ -114,7 +142,7 @@ export function AccessibilityToolbar() {
 
       <button
         onClick={() => setOpen(!open)}
-        className="interactive-feedback w-14 h-14 rounded-full bg-white border-2 border-primary shadow-lg flex items-center justify-center hover:scale-105 p-1.5"
+        className="interactive-feedback w-14 h-14 rounded-full bg-white border-2 border-primary shadow-lg flex items-center justify-center hover:scale-105 p-1.5 overflow-hidden"
         aria-label={open ? t("accessibility.close") : t("accessibility.open.description")}
         aria-expanded={open}
       >
