@@ -1,12 +1,15 @@
 import { useEffect, useState } from "react";
 import { QRCodeSVG } from "qrcode.react";
 import { ArrowLeft, Printer, Copy, Check, Save } from "lucide-react";
+import { AccessibilityToolbar } from "@/components/AccessibilityToolbar";
+import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import { Link } from "react-router-dom";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 
 export default function QRCodeGenerator() {
+  useDocumentTitle("QR Codes das Mesas — InteraMenu");
   const { restaurantId, restaurantSlug } = useAuth();
   const [baseUrl, setBaseUrl] = useState(window.location.origin);
   const [tableCount, setTableCount] = useState(10);
@@ -186,6 +189,7 @@ export default function QRCodeGenerator() {
           })}
         </div>
       </main>
+      <AccessibilityToolbar />
     </div>
   );
 }
