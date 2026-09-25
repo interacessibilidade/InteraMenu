@@ -95,6 +95,7 @@ export default function MenuManagement() {
   const queryClient = useQueryClient();
   const { restaurantId } = useAuth();
   const formRef = useRef<HTMLDivElement>(null);
+  const nameInputRef = useRef<HTMLInputElement>(null);
   const [form, setForm] = useState<Omit<MenuInsert, "id">>(emptyForm);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
@@ -198,6 +199,7 @@ export default function MenuManagement() {
     setShowForm(true);
     requestAnimationFrame(() => {
       formRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+      setTimeout(() => nameInputRef.current?.focus(), 300);
     });
   };
 
@@ -241,11 +243,13 @@ export default function MenuManagement() {
                 setAutoAudio(true);
                 requestAnimationFrame(() => {
                   formRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+                  setTimeout(() => nameInputRef.current?.focus(), 300);
                 });
               }}
+              aria-label="Cadastrar novo item"
               className="flex items-center gap-2 px-4 py-2 rounded-md bg-primary text-primary-foreground font-medium text-sm hover:bg-primary/90 transition-colors"
             >
-              <Plus className="w-4 h-4" /> Novo Item
+              <Plus className="w-4 h-4" aria-hidden="true" /> Novo Item
             </button>
           </div>
         </div>
@@ -280,7 +284,9 @@ export default function MenuManagement() {
                 </label>
                 <input
                   id="item-name"
+                  ref={nameInputRef}
                   className={inputClass}
+                  placeholder="Digite o nome do item"
                   value={form.name}
                   onChange={(e) => setForm({ ...form, name: e.target.value })}
                   required
@@ -305,6 +311,7 @@ export default function MenuManagement() {
                   type="number"
                   step="0.01"
                   min="0"
+                  placeholder="Digite o preço do item"
                   value={form.price}
                   onChange={(e) => setForm({ ...form, price: parseFloat(e.target.value) || 0 })}
                   required
@@ -335,9 +342,14 @@ export default function MenuManagement() {
                   id="item-sort-order"
                   className={inputClass}
                   type="number"
+                  placeholder="Digite a posição do item na lista"
                   value={form.sort_order}
                   onChange={(e) => setForm({ ...form, sort_order: parseInt(e.target.value) || 0 })}
+                  aria-describedby="item-sort-order-hint"
                 />
+                <span id="item-sort-order-hint" className="sr-only">
+                  Número que define a ordem de exibição deste item dentro da categoria. Menor número aparece primeiro.
+                </span>
               </div>
               <div className="sm:col-span-2">
                 <label className={labelClass} htmlFor="item-description">Descrição</label>
@@ -347,7 +359,7 @@ export default function MenuManagement() {
                   rows={2}
                   value={form.description || ""}
                   onChange={(e) => setForm({ ...form, description: e.target.value })}
-                  placeholder="Descrição do prato"
+                  placeholder="Digite a descrição do prato"
                 />
               </div>
               <div className="sm:col-span-2">
@@ -356,6 +368,7 @@ export default function MenuManagement() {
                   id="item-ingredients"
                   className={inputClass}
                   rows={2}
+                  placeholder="Digite os ingredientes do prato, separados por vírgula"
                   value={form.ingredients || ""}
                   onChange={(e) => setForm({ ...form, ingredients: e.target.value })}
                 />
@@ -406,12 +419,13 @@ export default function MenuManagement() {
                         addCustomAllergen();
                       }
                     }}
-                    placeholder="Outro alérgeno..."
+                    placeholder="Digite outro alérgeno"
                     className={inputClass}
                   />
                   <button
                     type="button"
                     onClick={addCustomAllergen}
+                    aria-label="Selecione para inserir outro alérgeno"
                     className="px-4 py-2 rounded-md bg-secondary text-secondary-foreground font-medium text-sm whitespace-nowrap hover:bg-secondary/80 transition-colors"
                   >
                     + Outro
@@ -438,7 +452,7 @@ export default function MenuManagement() {
                   rows={3}
                   value={form.audio_text || ""}
                   onChange={(e) => { setAutoAudio(false); setForm({ ...form, audio_text: e.target.value }); }}
-                  placeholder="Gerado automaticamente: Nome. Preço. Descrição. Ingredientes."
+                  placeholder="Digite o texto para áudio, ou deixe em branco para gerar automaticamente"
                   aria-describedby="item-audio-text-status"
                 />
                 <p id="item-audio-text-status" className="text-xs text-muted-foreground mt-1">
@@ -458,15 +472,31 @@ export default function MenuManagement() {
                     checked={form.is_available}
                     onChange={(e) => setForm({ ...form, is_available: e.target.checked })}
                     className="w-4 h-4 accent-primary"
+                    aria-describedby="item-is-available-hint"
                   />
                   <span className="text-sm font-medium text-foreground">Disponível</span>
                 </label>
               </div>
+              <div className="sm:col-span-2 -mt-2">
+                <p id="item-is-available-hint" className="text-xs text-muted-foreground">
+                  Marque esta opção se quer que o item apareça no cardápio visto pelos clientes. Desmarcado, o item fica oculto.
+                </p>
+              </div>
               <div className="sm:col-span-2 flex gap-3">
-                <button type="submit" disabled={saveMutation.isPending} className="px-6 py-2.5 rounded-md bg-primary text-primary-foreground font-bold text-sm hover:bg-primary/90 transition-colors">
+                <button
+                  type="submit"
+                  disabled={saveMutation.isPending}
+                  aria-label={editingId ? "Atualizar item de cardápio" : "Criar item de cardápio"}
+                  className="px-6 py-2.5 rounded-md bg-primary text-primary-foreground font-bold text-sm hover:bg-primary/90 transition-colors"
+                >
                   {saveMutation.isPending ? "Salvando..." : editingId ? "Atualizar" : "Criar"}
                 </button>
-                <button type="button" onClick={() => { setShowForm(false); setEditingId(null); setForm(emptyForm); setAutoAudio(true); setFormErrors({}); }} className="px-6 py-2.5 rounded-md bg-secondary text-secondary-foreground font-medium text-sm">
+                <button
+                  type="button"
+                  onClick={() => { setShowForm(false); setEditingId(null); setForm(emptyForm); setAutoAudio(true); setFormErrors({}); }}
+                  aria-label="Cancelar cadastro de item de cardápio"
+                  className="px-6 py-2.5 rounded-md bg-secondary text-secondary-foreground font-medium text-sm"
+                >
                   Cancelar
                 </button>
               </div>
