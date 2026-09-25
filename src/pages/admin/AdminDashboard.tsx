@@ -1,6 +1,9 @@
 import { Link } from "react-router-dom";
-import { UtensilsCrossed, Bell, QrCode, BarChart3, LogOut, ShieldCheck, Palette } from "lucide-react";
+import { UtensilsCrossed, Bell, QrCode, BarChart3, LogOut, ShieldCheck, Palette, FileText } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
+import { AccessibilityToolbar } from "@/components/AccessibilityToolbar";
+import { useDocumentTitle } from "@/hooks/useDocumentTitle";
+import { restaurantThemeStyle } from "@/lib/restaurantTheme";
 
 const navItems = [
   {
@@ -38,13 +41,21 @@ const navItems = [
     icon: Palette,
     ariaLabel: "Ir para configuração de identidade visual",
   },
+  {
+    title: "Cardápio em PDF",
+    description: "Ver e baixar o cardápio em PDF, pronto para impressão",
+    to: "/admin/cardapio-pdf",
+    icon: FileText,
+    ariaLabel: "Ir para a versão em PDF do cardápio",
+  },
 ];
 
 export default function AdminDashboard() {
-  const { restaurantName, isSuperAdmin, signOut, user } = useAuth();
+  useDocumentTitle("Gestão do Cardápio — InteraMenu");
+  const { restaurantName, restaurantLogoUrl, restaurantPrimaryColor, isSuperAdmin, signOut, user } = useAuth();
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background" style={restaurantThemeStyle(restaurantPrimaryColor)}>
       <header className="sticky top-0 z-30 bg-background/95 backdrop-blur border-b border-border">
         <div className="container flex flex-col items-center gap-2 py-5 text-center">
           <div className="flex w-full items-center justify-between gap-2 px-2">
@@ -68,6 +79,13 @@ export default function AdminDashboard() {
               Sair
             </button>
           </div>
+          {restaurantLogoUrl && (
+            <img
+              src={restaurantLogoUrl}
+              alt={`Logotipo de ${restaurantName || "seu restaurante"}`}
+              className="h-12 w-12 rounded-full border border-border object-contain bg-background p-0.5"
+            />
+          )}
           <h1 className="text-2xl font-extrabold text-foreground">Gestão do Cardápio</h1>
           <p className="text-sm font-medium text-primary" aria-label={`Você está conectada como ${restaurantName || user?.email}`}>
             {restaurantName ? restaurantName : isSuperAdmin ? "Administração geral" : user?.email}
@@ -94,6 +112,7 @@ export default function AdminDashboard() {
           ))}
         </div>
       </main>
+      <AccessibilityToolbar />
     </div>
   );
 }
