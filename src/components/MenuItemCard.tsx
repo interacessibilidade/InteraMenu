@@ -1,10 +1,8 @@
 import { useState } from "react";
-import { Play, Pause, ImageIcon, AlertTriangle, X, Loader2 } from "lucide-react";
+import { Play, Pause, ImageIcon, AlertTriangle, X } from "lucide-react";
 import type { Database } from "@/integrations/supabase/types";
 import { useLanguage, getAudioLang, type Language } from "@/hooks/useLanguage";
 import { useSpeechSynthesis } from "@/hooks/useSpeechSynthesis";
-import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
 
 type MenuItem = Database["public"]["Tables"]["menu_items"]["Row"];
 
@@ -43,46 +41,14 @@ export function MenuItemCard({
   });
 
   const [imageModalOpen, setImageModalOpen] = useState(false);
-  const [ingredientImageUrl, setIngredientImageUrl] = useState<string | null>(
-    (item as any).ingredientes_imagem_url || null
-  );
-  const [generating, setGenerating] = useState(false);
+  const ingredientImageUrl = (item as any).ingredientes_imagem_url || null;
 
-  const hasIngredients = !!item.ingredients && showIngredientsButton;
+  // Só mostra o botão de ver ingredientes quando existe uma foto enviada
+  // manualmente pelo restaurante — a geração automática por IA foi desativada.
+  const hasIngredients = !!ingredientImageUrl && showIngredientsButton;
 
-  const handleViewIngredients = async () => {
-    if (ingredientImageUrl) {
-      setImageModalOpen(true);
-      return;
-    }
-
-    if (!item.ingredients) return;
-
-    setGenerating(true);
+  const handleViewIngredients = () => {
     setImageModalOpen(true);
-
-    try {
-      const { data, error } = await supabase.functions.invoke("generate-ingredient-image", {
-        body: {
-          itemId: item.id,
-          itemName: item.name,
-          ingredients: item.ingredients,
-        },
-      });
-
-      if (error) throw error;
-      if (data?.url) {
-        setIngredientImageUrl(data.url);
-      } else {
-        throw new Error(data?.error || "Failed to generate image");
-      }
-    } catch (e: any) {
-      console.error("Error generating ingredient image:", e);
-      toast.error(t("ingredients.image.error"));
-      setImageModalOpen(false);
-    } finally {
-      setGenerating(false);
-    }
   };
 
   const audioButtonText = !isSupported
@@ -195,8 +161,7 @@ export function MenuItemCard({
               <button
                 type="button"
                 onClick={handleViewIngredients}
-                disabled={generating}
-                className="interactive-feedback flex-1 flex items-center justify-center gap-2 py-2.5 px-3 rounded-md bg-secondary text-secondary-foreground font-medium text-sm hover:bg-secondary/80 disabled:cursor-not-allowed disabled:opacity-60"
+                className="interactive-feedback flex-1 flex items-center justify-center gap-2 py-2.5 px-3 rounded-md bg-secondary text-secondary-foreground font-medium text-sm hover:bg-secondary/80"
                 aria-label={`${t("ingredients.image.aria")} ${item.name}`}
               >
                 <ImageIcon className="w-4 h-4" aria-hidden="true" />
@@ -234,14 +199,7 @@ export function MenuItemCard({
             </div>
 
             <div className="p-4">
-              {generating ? (
-                <div className="flex flex-col items-center justify-center py-12 gap-3">
-                  <Loader2 className="w-8 h-8 animate-spin text-primary" aria-hidden="true" />
-                  <p className="text-sm text-muted-foreground font-medium">
-                    {t("ingredients.image.loading")}
-                  </p>
-                </div>
-              ) : ingredientImageUrl ? (
+              {ingredientImageUrl ? (
                 <img
                   src={ingredientImageUrl}
                   alt={t("ingredients.image.figure_alt")}
