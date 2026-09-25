@@ -126,10 +126,16 @@ export default function Signup() {
               id="signup-restaurant-name"
               name="restaurantName"
               type="text"
+              autoComplete="off"
+              placeholder="Digite o nome do seu restaurante"
               value={restaurantName}
               onChange={(e) => handleNameChange(e.target.value)}
               aria-required="true"
+              aria-describedby="signup-restaurant-name-hint"
             />
+            <span id="signup-restaurant-name-hint" className="sr-only">
+              Digite o nome do seu restaurante, como ele deve aparecer no cardápio
+            </span>
           </div>
 
           <div className="mb-4">
@@ -140,6 +146,8 @@ export default function Signup() {
                 id="signup-slug"
                 name="slug"
                 type="text"
+                autoComplete="off"
+                placeholder="nome-do-restaurante"
                 value={slug}
                 onChange={(e) => {
                   setSlugEditedManually(true);
@@ -151,7 +159,7 @@ export default function Signup() {
               />
             </div>
             <p id="signup-slug-hint" className="mt-1 text-xs text-muted-foreground">
-              É o link que seus clientes vão acessar pelo QR Code da mesa.
+              É o link que seus clientes vão acessar pelo QR Code da mesa. Preenchido automaticamente, mas você pode editar.
             </p>
           </div>
 
@@ -162,10 +170,15 @@ export default function Signup() {
               name="email"
               type="email"
               autoComplete="email"
+              placeholder="Digite seu e-mail"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               aria-required="true"
+              aria-describedby="signup-email-hint"
             />
+            <span id="signup-email-hint" className="sr-only">
+              Digite o e-mail que você vai usar para entrar na gestão do seu cardápio
+            </span>
           </div>
 
           <div className="mb-2">
@@ -176,6 +189,7 @@ export default function Signup() {
                 name="password"
                 type={showPassword ? "text" : "password"}
                 autoComplete="new-password"
+                placeholder="Crie uma senha"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 aria-required="true"
