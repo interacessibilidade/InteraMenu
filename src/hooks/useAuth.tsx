@@ -11,6 +11,8 @@ interface AuthContextValue {
   restaurantId: string | null;
   restaurantSlug: string | null;
   restaurantName: string | null;
+  restaurantLogoUrl: string | null;
+  restaurantPrimaryColor: string | null;
   loading: boolean;
   isSuperAdmin: boolean;
   signOut: () => Promise<void>;
@@ -24,6 +26,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [restaurantId, setRestaurantId] = useState<string | null>(null);
   const [restaurantSlug, setRestaurantSlug] = useState<string | null>(null);
   const [restaurantName, setRestaurantName] = useState<string | null>(null);
+  const [restaurantLogoUrl, setRestaurantLogoUrl] = useState<string | null>(null);
+  const [restaurantPrimaryColor, setRestaurantPrimaryColor] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -38,6 +42,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setRestaurantId(null);
         setRestaurantSlug(null);
         setRestaurantName(null);
+        setRestaurantLogoUrl(null);
+        setRestaurantPrimaryColor(null);
         setLoading(false);
       }
     });
@@ -60,7 +66,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setLoading(true);
     const { data, error } = await supabase
       .from("user_roles")
-      .select("role, restaurant_id, restaurants(slug, name)")
+      .select("role, restaurant_id, restaurants(slug, name, logo_url, primary_color)")
       .eq("user_id", userId)
       .maybeSingle();
 
@@ -69,11 +75,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setRestaurantId(data.restaurant_id);
       setRestaurantSlug((data as any).restaurants?.slug ?? null);
       setRestaurantName((data as any).restaurants?.name ?? null);
+      setRestaurantLogoUrl((data as any).restaurants?.logo_url ?? null);
+      setRestaurantPrimaryColor((data as any).restaurants?.primary_color ?? null);
     } else {
       setRole(null);
       setRestaurantId(null);
       setRestaurantSlug(null);
       setRestaurantName(null);
+      setRestaurantLogoUrl(null);
+      setRestaurantPrimaryColor(null);
     }
     setLoading(false);
   }
@@ -89,6 +99,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     restaurantId,
     restaurantSlug,
     restaurantName,
+    restaurantLogoUrl,
+    restaurantPrimaryColor,
     loading,
     isSuperAdmin: role === "super_admin",
     signOut,
