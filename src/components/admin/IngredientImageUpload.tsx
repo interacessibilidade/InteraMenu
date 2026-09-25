@@ -1,7 +1,7 @@
 import { useState, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import { X, Loader2, ImageIcon, Sparkles } from "lucide-react";
+import { X, Loader2, ImageIcon } from "lucide-react";
 import { toast } from "sonner";
 
 const ACCEPTED_TYPES = ["image/jpeg", "image/jpg", "image/png"];
@@ -113,9 +113,8 @@ export default function IngredientImageUpload({ currentUrl, onUrlChange }: Ingre
     <div className="sm:col-span-2 space-y-3">
       <label className={labelClass}>Foto dos ingredientes (opcional)</label>
       <p className="text-xs text-muted-foreground">
-        Se você não subir uma foto aqui, o sistema tenta gerar uma automaticamente por IA quando
-        um cliente pedir para ver os ingredientes — mas nem sempre o resultado fica perfeito.
-        Suba sua própria foto para ter controle total sobre o que aparece.
+        Se você não subir uma foto aqui, o botão de "ver ingredientes" simplesmente não aparece
+        pra esse prato no cardápio — a geração automática por IA foi desativada.
       </p>
 
       {currentUrl ? (
@@ -182,12 +181,10 @@ export default function IngredientImageUpload({ currentUrl, onUrlChange }: Ingre
       )}
 
       {!currentUrl && (
-        <p className="flex items-center gap-1 text-xs text-muted-foreground">
-          <Sparkles className="w-3.5 h-3.5" aria-hidden="true" />
-          Sem foto própria: será gerada automaticamente por IA quando solicitado
+        <p className="text-xs text-muted-foreground">
+          Sem foto própria, o botão de ver ingredientes não aparece pra esse prato.
         </p>
       )}
     </div>
   );
 }
-
