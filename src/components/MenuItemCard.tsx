@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Play, Pause, ImageIcon, AlertTriangle, X } from "lucide-react";
 import type { Database } from "@/integrations/supabase/types";
 import { useLanguage, getAudioLang, type Language } from "@/hooks/useLanguage";
@@ -41,6 +41,7 @@ export function MenuItemCard({
   });
 
   const [imageModalOpen, setImageModalOpen] = useState(false);
+  const closeButtonRef = useRef<HTMLButtonElement>(null);
   const ingredientImageUrl = (item as any).ingredientes_imagem_url || null;
 
   // Só mostra o botão de ver ingredientes quando existe uma foto enviada
@@ -50,6 +51,12 @@ export function MenuItemCard({
   const handleViewIngredients = () => {
     setImageModalOpen(true);
   };
+
+  useEffect(() => {
+    if (imageModalOpen) {
+      closeButtonRef.current?.focus();
+    }
+  }, [imageModalOpen]);
 
   const audioButtonText = !isSupported
     ? t("audio.unavailable")
@@ -190,6 +197,7 @@ export function MenuItemCard({
                 {t("ingredients.image.modal.title")} – {item.name}
               </h2>
               <button
+                ref={closeButtonRef}
                 onClick={() => setImageModalOpen(false)}
                 className="interactive-feedback p-1.5 rounded-md hover:bg-secondary"
                 aria-label={t("ingredients.image.modal.close")}
@@ -198,15 +206,20 @@ export function MenuItemCard({
               </button>
             </div>
 
-            <div className="p-4">
+            <div className="p-4 space-y-3">
               {ingredientImageUrl ? (
                 <img
                   src={ingredientImageUrl}
-                  alt={t("ingredients.image.figure_alt")}
+                  alt={`Ilustração dos ingredientes de ${item.name}: ${item.ingredients || ""}`}
                   className="w-full rounded-lg"
                   loading="lazy"
                 />
               ) : null}
+              {item.ingredients && (
+                <p className="text-sm text-foreground">
+                  <strong>Ingredientes:</strong> {item.ingredients}
+                </p>
+              )}
             </div>
           </div>
         </div>
