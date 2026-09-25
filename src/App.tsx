@@ -19,6 +19,7 @@ import MenuManagement from "./pages/admin/MenuManagement";
 import QRCodeGenerator from "./pages/admin/QRCodeGenerator";
 import WaiterReport from "./pages/admin/WaiterReport";
 import BrandSettings from "./pages/admin/BrandSettings";
+import MenuPdf from "./pages/admin/MenuPdf";
 import SuperAdminDashboard from "./pages/admin/SuperAdminDashboard";
 
 const queryClient = new QueryClient();
@@ -85,6 +86,14 @@ const App = () => (
                   element={
                     <ProtectedRoute>
                       <BrandSettings />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/admin/cardapio-pdf"
+                  element={
+                    <ProtectedRoute>
+                      <MenuPdf />
                     </ProtectedRoute>
                   }
                 />
