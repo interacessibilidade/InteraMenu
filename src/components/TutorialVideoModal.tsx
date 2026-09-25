@@ -2,7 +2,9 @@ import { useRef, useEffect, useState, useCallback, useMemo } from "react";
 import { X, Play, Pause, RotateCcw, Volume2, VolumeX, Gauge } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useLanguage } from "@/hooks/useLanguage";
-import tutorialVideo from "@/assets/tutorial-cardapio.mp4.asset.json";
+
+// Vídeo estático, servido direto da pasta public/ (copiado para dist/ no build).
+const TUTORIAL_VIDEO_URL = "/video-como-usar.mp4";
 
 interface TutorialVideoModalProps {
   open: boolean;
@@ -157,7 +159,7 @@ export function TutorialVideoModal({ open, onClose }: TutorialVideoModalProps) {
             <div className="bg-black flex-1 min-h-0 flex items-center justify-center">
               <video
                 ref={videoRef}
-                src={tutorialVideo.url}
+                src={TUTORIAL_VIDEO_URL}
                 className="max-w-full max-h-full w-auto h-auto object-contain"
                 preload="none"
                 playsInline
