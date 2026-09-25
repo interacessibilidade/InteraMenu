@@ -447,7 +447,7 @@ export default function MenuManagement() {
               </div>
               <div className="sm:col-span-2">
                 <p className="text-xs text-muted-foreground">
-                  💡 A ilustração dos ingredientes será gerada automaticamente por IA quando o cliente clicar em "Ver ingredientes" no cardápio, a menos que você suba uma foto própria acima.
+                  💡 A foto de ingredientes só aparece no cardápio se você subir uma acima — a geração automática por IA foi desativada.
                 </p>
               </div>
               <div className="sm:col-span-2 flex items-center gap-3">
