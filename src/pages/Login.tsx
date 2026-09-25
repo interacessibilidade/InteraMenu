@@ -5,8 +5,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 
 export default function Login() {
+  useDocumentTitle("Entrar — InteraMenu");
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -50,7 +52,7 @@ export default function Login() {
         <h1 className="mb-1 text-center text-2xl font-extrabold" style={{ color: "#1A1F2C" }}>
           Entrar
         </h1>
-        <p className="mb-6 text-center text-sm text-muted-foreground">
+        <p className="mb-6 text-center text-sm text-foreground/80">
           Acesse o painel de gestão do seu restaurante
         </p>
 
@@ -114,7 +116,7 @@ export default function Login() {
             </div>
           </div>
 
-          <div role="alert" aria-live="polite" className="mb-4 min-h-[1.25rem] text-sm text-destructive">
+          <div role="alert" className="mb-4 min-h-[1.25rem] text-sm text-destructive">
             {error}
           </div>
 
@@ -129,7 +131,7 @@ export default function Login() {
           </Button>
         </form>
 
-        <p className="mt-6 text-center text-sm text-muted-foreground">
+        <p className="mt-6 text-center text-sm text-foreground/80">
           Ainda não tem conta?{" "}
           <Link to="/cadastro" className="font-medium underline-offset-4 hover:underline" style={{ color: "#AF005F" }}>
             Cadastre seu restaurante
