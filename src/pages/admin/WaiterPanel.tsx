@@ -5,6 +5,8 @@ import { Link } from "react-router-dom";
 import type { Database } from "@/integrations/supabase/types";
 import { useTableNames } from "@/hooks/useTableName";
 import { useAuth } from "@/hooks/useAuth";
+import { AccessibilityToolbar } from "@/components/AccessibilityToolbar";
+import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 
 type WaiterCall = Database["public"]["Tables"]["waiter_calls"]["Row"];
 
@@ -32,6 +34,7 @@ function isUrgent(date: string) {
 }
 
 export default function WaiterPanel() {
+  useDocumentTitle("Painel do Garçom — InteraMenu");
   const { restaurantId } = useAuth();
   const [calls, setCalls] = useState<WaiterCall[]>([]);
   const [statusMessage, setStatusMessage] = useState("");
@@ -220,6 +223,7 @@ export default function WaiterPanel() {
       </main>
 
       <audio ref={audioRef} />
+      <AccessibilityToolbar />
     </div>
   );
 }
