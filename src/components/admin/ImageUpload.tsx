@@ -228,20 +228,22 @@ export default function ImageUpload({ currentUrl, onUrlChange, altText, onAltCha
         </button>
       )}
 
-      <p className="text-xs text-muted-foreground" aria-live="polite">
-        {uploading ? "Upload em andamento..." : generatingAlt ? "Gerando descrição com IA..." : "Formatos: JPG, PNG · a imagem é redimensionada e comprimida automaticamente"}
+      <p id="image-upload-status" className="text-xs text-muted-foreground" aria-live="polite">
+        {uploading ? "Upload em andamento..." : generatingAlt ? "Gerando descrição com IA, aguarde..." : "Formatos: JPG, PNG · a imagem é redimensionada e comprimida automaticamente. Depois de enviar uma foto, aguarde alguns segundos: a IA preenche a descrição abaixo automaticamente."}
       </p>
 
       <div>
-        <label className={labelClass}>
+        <label className={labelClass} htmlFor="item-image-alt">
           Texto alternativo da imagem *
-          {generatingAlt && <Sparkles className="inline w-3.5 h-3.5 ml-1 animate-pulse text-primary" />}
+          {generatingAlt && <Sparkles className="inline w-3.5 h-3.5 ml-1 animate-pulse text-primary" aria-hidden="true" />}
         </label>
         <input
+          id="item-image-alt"
           className={inputClass}
           value={altText}
           onChange={(e) => onAltChange(e.target.value)}
           placeholder={generatingAlt ? "Gerando com IA..." : "Descreva a imagem para acessibilidade"}
+          aria-describedby="image-upload-status"
           required={!!displayUrl}
         />
       </div>
