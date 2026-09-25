@@ -5,6 +5,8 @@ import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { LogOut } from "lucide-react";
 import { toast } from "sonner";
+import { AccessibilityToolbar } from "@/components/AccessibilityToolbar";
+import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 
 interface RestaurantRow {
   id: string;
@@ -17,6 +19,7 @@ interface RestaurantRow {
 }
 
 export default function SuperAdminDashboard() {
+  useDocumentTitle("Painel Geral — InteraMenu");
   const { user, signOut } = useAuth();
   const [restaurants, setRestaurants] = useState<RestaurantRow[]>([]);
   const [loading, setLoading] = useState(true);
@@ -184,6 +187,7 @@ export default function SuperAdminDashboard() {
           </div>
         )}
       </main>
+      <AccessibilityToolbar />
     </div>
   );
 }
