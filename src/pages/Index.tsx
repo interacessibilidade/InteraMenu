@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useParams, useSearchParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -75,6 +75,21 @@ export default function Index() {
 
   const allowedCategories: MenuCategory[] | null =
     filter === "all" ? null : [filter as MenuCategory];
+
+  const isFirstFilterRender = useRef(true);
+  useEffect(() => {
+    if (isFirstFilterRender.current) {
+      isFirstFilterRender.current = false;
+      return;
+    }
+    if (filter === "all") return;
+    // Espera o DOM atualizar com a lista filtrada antes de rolar
+    const timeoutId = window.setTimeout(() => {
+      const section = document.getElementById(`cat-${filter}`);
+      section?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 50);
+    return () => window.clearTimeout(timeoutId);
+  }, [filter]);
 
   if (!loadingRestaurant && (!restaurant || restaurant.status !== "active")) {
     return (
