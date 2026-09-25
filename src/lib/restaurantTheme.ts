@@ -81,11 +81,11 @@ export function validateBrandColorContrast(hex: string): { ok: boolean; message?
   }
 
   const contrastWithPageBackground = contrastRatio(hex, "#FFFFFF");
-  if (contrastWithPageBackground < 3) {
+  if (contrastWithPageBackground < 4.5) {
     return {
       ok: false,
       message:
-        "Essa cor é muito clara e fica pouco visível sobre o fundo branco do cardápio. Escolha uma cor mais escura ou mais saturada.",
+        "Essa cor não atinge o contraste mínimo de 4,5:1 exigido pela acessibilidade. Escolha uma cor mais escura ou mais saturada.",
     };
   }
 
