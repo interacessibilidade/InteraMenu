@@ -15,6 +15,16 @@ function timeSince(date: string) {
   return `${m}m ${s.toString().padStart(2, "0")}s`;
 }
 
+function timeSinceSpoken(date: string) {
+  const seconds = Math.floor((Date.now() - new Date(date).getTime()) / 1000);
+  const m = Math.floor(seconds / 60);
+  const s = seconds % 60;
+  const minutosLabel = m === 1 ? "minuto" : "minutos";
+  const segundosLabel = s === 1 ? "segundo" : "segundos";
+  if (m === 0) return `${s} ${segundosLabel}`;
+  return `${m} ${minutosLabel} e ${s} ${segundosLabel}`;
+}
+
 const URGENT_THRESHOLD_SECONDS = 180; // 3 minutes
 
 function isUrgent(date: string) {
@@ -24,6 +34,7 @@ function isUrgent(date: string) {
 export default function WaiterPanel() {
   const { restaurantId } = useAuth();
   const [calls, setCalls] = useState<WaiterCall[]>([]);
+  const [statusMessage, setStatusMessage] = useState("");
   const [, setTick] = useState(0);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const { data: tableNames } = useTableNames(restaurantId);
@@ -104,15 +115,23 @@ export default function WaiterPanel() {
   };
 
   const markAttended = async (id: string) => {
+    const call = calls.find((c) => c.id === id);
     await supabase
       .from("waiter_calls")
       .update({ status: "attended", attended_at: new Date().toISOString() })
       .eq("id", id);
     setCalls((prev) => prev.filter((c) => c.id !== id));
+    if (call) {
+      const tableLabel = tableNames?.[call.table_number] || `Mesa ${call.table_number}`;
+      setStatusMessage(`Chamado da ${tableLabel} marcado como atendido.`);
+    }
   };
 
   return (
     <div className="min-h-screen bg-background">
+      <p role="status" aria-live="polite" className="sr-only">
+        {statusMessage}
+      </p>
       <header className="sticky top-0 z-30 bg-background/95 backdrop-blur border-b border-border">
         <div className="container py-4 flex items-center gap-3">
           <Link to="/admin" className="p-2 rounded-md hover:bg-secondary transition-colors" aria-label="Voltar para gestão do cardápio">
@@ -179,7 +198,8 @@ export default function WaiterPanel() {
                 <div className="flex items-center gap-2 text-sm text-muted-foreground mb-4">
                   <Clock className="w-4 h-4" aria-hidden="true" />
                   <span className={urgent ? "text-destructive font-bold" : ""}>
-                    Esperando: {timeSince(call.created_at)}
+                    <span aria-hidden="true">Esperando: {timeSince(call.created_at)}</span>
+                    <span className="sr-only">Esperando há {timeSinceSpoken(call.created_at)}</span>
                   </span>
                 </div>
                 <p className="text-xs text-muted-foreground mb-4">
@@ -187,6 +207,7 @@ export default function WaiterPanel() {
                 </p>
                 <button
                   onClick={() => markAttended(call.id)}
+                  aria-label={`Marcar chamado como atendido`}
                   className="w-full py-3 rounded-md bg-success text-success-foreground font-bold text-sm hover:bg-success/90 transition-colors focus:outline-none focus:ring-2 focus:ring-ring"
                 >
                   ✓ Atendido
