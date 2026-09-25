@@ -17,8 +17,8 @@ const labels: Record<Language, {
     placeholder: "Digite sua mensagem para mostrar ao garçom...",
     clear: "Limpar",
     close: "Fechar",
-    hint: "Mostre esta tela ao garçom.",
-    ariaOpen: "Abrir caixa para escrever mensagem ao garçom",
+    hint: "Esta mensagem não é enviada pelo sistema. Mostre a tela do celular pessoalmente ao garçom para ele ler.",
+    ariaOpen: "Escrever mensagem para mostrar pessoalmente ao garçom. Esta opção não envia nada pelo sistema, é só para exibir na tela do celular.",
   },
   en: {
     button: "Write to Waiter",
@@ -26,8 +26,8 @@ const labels: Record<Language, {
     placeholder: "Type your message to show the waiter...",
     clear: "Clear",
     close: "Close",
-    hint: "Show this screen to the waiter.",
-    ariaOpen: "Open box to write a message to the waiter",
+    hint: "This message is not sent through the system. Show your phone screen to the waiter in person so they can read it.",
+    ariaOpen: "Write a message to show the waiter in person. This does not send anything through the system, it only displays on your phone screen.",
   },
   es: {
     button: "Escribir al Camarero",
@@ -35,8 +35,8 @@ const labels: Record<Language, {
     placeholder: "Escribe tu mensaje para mostrar al camarero...",
     clear: "Limpiar",
     close: "Cerrar",
-    hint: "Muestra esta pantalla al camarero.",
-    ariaOpen: "Abrir caja para escribir un mensaje al camarero",
+    hint: "Este mensaje no se envía por el sistema. Muestra la pantalla de tu celular personalmente al camarero para que la lea.",
+    ariaOpen: "Escribir un mensaje para mostrar personalmente al camarero. Esta opción no envía nada por el sistema, solo se muestra en la pantalla del celular.",
   },
   fr: {
     button: "Écrire au Serveur",
@@ -44,8 +44,8 @@ const labels: Record<Language, {
     placeholder: "Saisissez votre message à montrer au serveur...",
     clear: "Effacer",
     close: "Fermer",
-    hint: "Montrez cet écran au serveur.",
-    ariaOpen: "Ouvrir la boîte pour écrire un message au serveur",
+    hint: "Ce message n'est pas envoyé par le système. Montrez l'écran de votre téléphone en personne au serveur pour qu'il puisse le lire.",
+    ariaOpen: "Écrire un message à montrer en personne au serveur. Cette option n'envoie rien par le système, elle s'affiche uniquement sur l'écran du téléphone.",
   },
 };
 
