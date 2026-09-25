@@ -129,7 +129,17 @@ export function MenuItemCard({
           <div className="flex items-start justify-between gap-2">
             <h3 className="text-lg font-bold text-foreground leading-tight">{item.name}</h3>
             <span className="text-lg font-extrabold text-primary whitespace-nowrap">
-              R$ {Number(item.price).toFixed(2).replace(".", ",")}
+              <span aria-hidden="true">R$ {Number(item.price).toFixed(2).replace(".", ",")}</span>
+              <span className="sr-only">
+                {(() => {
+                  const [reaisPart, centavosPart] = Number(item.price).toFixed(2).split(".");
+                  const reaisNum = Number(reaisPart);
+                  const centavosNum = Number(centavosPart);
+                  const reaisLabel = `${reaisNum} ${reaisNum === 1 ? "real" : "reais"}`;
+                  const centavosLabel = centavosNum > 0 ? ` e ${centavosNum} ${centavosNum === 1 ? "centavo" : "centavos"}` : "";
+                  return `${reaisLabel}${centavosLabel}`;
+                })()}
+              </span>
             </span>
           </div>
 
@@ -138,7 +148,10 @@ export function MenuItemCard({
           )}
 
           {item.ingredients && (
-            <p className="text-xs text-muted-foreground leading-relaxed">{item.ingredients}</p>
+            <p className="text-xs text-muted-foreground leading-relaxed">
+              <span className="sr-only">Ingredientes: </span>
+              {item.ingredients}
+            </p>
           )}
 
           {item.allergens && item.allergens.length > 0 && (
@@ -174,7 +187,7 @@ export function MenuItemCard({
               <span>{audioButtonText}</span>
             </button>
 
-            <p id={audioStatusId} className="sr-only" aria-live="polite">
+            <p id={audioStatusId} className="sr-only" aria-live="polite" aria-hidden="true">
               {audioStatusText}
             </p>
 
