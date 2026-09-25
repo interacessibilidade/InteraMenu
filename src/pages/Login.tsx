@@ -40,9 +40,16 @@ export default function Login() {
   }
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-background px-4">
+    <main className="flex min-h-screen flex-col items-center justify-center bg-background px-4">
+      <div className="mb-8 flex flex-col items-center gap-3">
+        <img src="/logo-interacessibilidade.png" alt="Interacessibilidade" className="h-10 w-auto" />
+        <div className="h-1 w-16 rounded-full" style={{ backgroundColor: "#AF005F" }} aria-hidden="true" />
+      </div>
+
       <div className="w-full max-w-sm">
-        <h1 className="mb-1 text-center text-2xl font-extrabold text-foreground">Entrar</h1>
+        <h1 className="mb-1 text-center text-2xl font-extrabold" style={{ color: "#1A1F2C" }}>
+          Entrar
+        </h1>
         <p className="mb-6 text-center text-sm text-muted-foreground">
           Acesse o painel de gestão do seu restaurante
         </p>
@@ -55,11 +62,16 @@ export default function Login() {
               name="email"
               type="email"
               autoComplete="email"
+              placeholder="Digite seu e-mail cadastrado"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               aria-required="true"
               aria-invalid={!!error}
+              aria-describedby="login-email-hint"
             />
+            <span id="login-email-hint" className="sr-only">
+              Digite seu e-mail cadastrado para entrar na gestão do seu cardápio
+            </span>
           </div>
 
           <div className="mb-2">
@@ -67,7 +79,8 @@ export default function Login() {
               <Label htmlFor="login-password">Senha</Label>
               <Link
                 to="/esqueci-senha"
-                className="text-xs font-medium text-primary underline-offset-4 hover:underline"
+                className="text-xs font-medium underline-offset-4 hover:underline"
+                style={{ color: "#AF005F" }}
               >
                 Esqueci minha senha
               </Link>
@@ -78,12 +91,17 @@ export default function Login() {
                 name="password"
                 type={showPassword ? "text" : "password"}
                 autoComplete="current-password"
+                placeholder="Digite sua senha cadastrada"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 aria-required="true"
                 aria-invalid={!!error}
+                aria-describedby="login-password-hint"
                 className="pr-12"
               />
+              <span id="login-password-hint" className="sr-only">
+                Digite sua senha cadastrada
+              </span>
               <button
                 type="button"
                 onClick={() => setShowPassword((v) => !v)}
@@ -96,18 +114,24 @@ export default function Login() {
             </div>
           </div>
 
-          <div aria-live="polite" className="mb-4 min-h-[1.25rem] text-sm text-destructive">
+          <div role="alert" aria-live="polite" className="mb-4 min-h-[1.25rem] text-sm text-destructive">
             {error}
           </div>
 
-          <Button type="submit" className="w-full" disabled={submitting}>
+          <Button
+            type="submit"
+            className="w-full"
+            style={{ backgroundColor: "#AF005F" }}
+            disabled={submitting}
+            aria-label="Clique para entrar na gestão do cardápio"
+          >
             {submitting ? "Entrando..." : "Entrar"}
           </Button>
         </form>
 
         <p className="mt-6 text-center text-sm text-muted-foreground">
           Ainda não tem conta?{" "}
-          <Link to="/cadastro" className="font-medium text-primary underline-offset-4 hover:underline">
+          <Link to="/cadastro" className="font-medium underline-offset-4 hover:underline" style={{ color: "#AF005F" }}>
             Cadastre seu restaurante
           </Link>
         </p>
