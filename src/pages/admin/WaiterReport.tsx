@@ -4,6 +4,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { ArrowLeft, BarChart3, Calendar, Printer } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
+import { AccessibilityToolbar } from "@/components/AccessibilityToolbar";
+import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 
 interface CallRow {
   id: string;
@@ -28,6 +30,7 @@ function calcMinutes(start: string, end: string | null) {
 }
 
 export default function WaiterReport() {
+  useDocumentTitle("Relatório de Atendimento — InteraMenu");
   const { restaurantId } = useAuth();
   const [dateFilter, setDateFilter] = useState(() => {
     const d = new Date();
@@ -153,6 +156,7 @@ export default function WaiterReport() {
           </div>
         )}
       </main>
+      <AccessibilityToolbar />
     </div>
   );
 }
