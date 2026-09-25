@@ -83,16 +83,18 @@ export default function QRCodeGenerator() {
       <main className="container py-6">
         <div className="flex gap-4 mb-8 print:hidden">
           <div>
-            <label className="block text-sm font-semibold text-foreground mb-1">URL base</label>
+            <label className="block text-sm font-semibold text-foreground mb-1" htmlFor="qr-base-url">URL base</label>
             <input
+              id="qr-base-url"
               className="px-3 py-2 rounded-md bg-background border border-input text-foreground text-sm w-64"
               value={baseUrl}
               onChange={(e) => setBaseUrl(e.target.value)}
             />
           </div>
           <div>
-            <label className="block text-sm font-semibold text-foreground mb-1">Nº de mesas</label>
+            <label className="block text-sm font-semibold text-foreground mb-1" htmlFor="qr-table-count">Nº de mesas</label>
             <input
+              id="qr-table-count"
               className="px-3 py-2 rounded-md bg-background border border-input text-foreground text-sm w-24"
               type="number"
               min={1}
