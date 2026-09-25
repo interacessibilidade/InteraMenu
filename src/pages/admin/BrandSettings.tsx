@@ -4,7 +4,7 @@ import { ArrowLeft, Loader2, ImageIcon, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
-import { hexToHslString, restaurantThemeStyle } from "@/lib/restaurantTheme";
+import { hexToHslString, restaurantThemeStyle, validateBrandColorContrast } from "@/lib/restaurantTheme";
 
 const DEFAULT_COLOR = "#3a4a3f";
 
@@ -38,6 +38,11 @@ export default function BrandSettings() {
     if (!restaurantId) return;
     if (!hexToHslString(color)) {
       setColorError("Cor inválida. Use o formato #RRGGBB, por exemplo #2F6D3C.");
+      return;
+    }
+    const contrastCheck = validateBrandColorContrast(color);
+    if (!contrastCheck.ok) {
+      setColorError(contrastCheck.message || "Essa cor não atende ao contraste mínimo de acessibilidade.");
       return;
     }
     setColorError(null);
