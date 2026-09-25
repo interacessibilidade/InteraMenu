@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { ArrowLeft, Loader2, ImageIcon, X } from "lucide-react";
+import { AccessibilityToolbar } from "@/components/AccessibilityToolbar";
+import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
@@ -9,6 +11,7 @@ import { hexToHslString, restaurantThemeStyle, validateBrandColorContrast } from
 const DEFAULT_COLOR = "#3a4a3f";
 
 export default function BrandSettings() {
+  useDocumentTitle("Identidade Visual — InteraMenu");
   const { restaurantId } = useAuth();
   const [color, setColor] = useState(DEFAULT_COLOR);
   const [logoUrl, setLogoUrl] = useState<string>("");
@@ -243,6 +246,7 @@ export default function BrandSettings() {
           </div>
         )}
       </main>
+      <AccessibilityToolbar />
     </div>
   );
 }
