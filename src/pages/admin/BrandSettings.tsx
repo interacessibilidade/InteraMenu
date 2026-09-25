@@ -114,15 +114,15 @@ export default function BrandSettings() {
           <p className="text-muted-foreground">Carregando...</p>
         ) : (
           <div className="space-y-8">
-            <section>
-              <h2 className="mb-1 text-lg font-bold text-foreground">Cor principal</h2>
+            <section aria-labelledby="brand-color-heading">
+              <h2 id="brand-color-heading" className="mb-1 text-lg font-bold text-foreground">Paleta de cores — cor principal</h2>
               <p className="mb-3 text-sm text-muted-foreground">
                 Usada nos botões e destaques do seu cardápio. Escolhemos automaticamente um texto
                 claro ou escuro por cima dela, para manter a leitura fácil.
               </p>
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-3" role="group" aria-label="Paleta de cores: escolha da cor principal">
                 <label htmlFor="brand-color-picker" className="sr-only">
-                  Selecionar cor principal
+                  Paleta de cores: selecionar visualmente a cor principal
                 </label>
                 <input
                   id="brand-color-picker"
@@ -133,7 +133,7 @@ export default function BrandSettings() {
                 />
                 <div className="flex-1">
                   <label htmlFor="brand-color-hex" className="sr-only">
-                    Código da cor em hexadecimal
+                    Paleta de cores: código da cor principal em hexadecimal
                   </label>
                   <input
                     id="brand-color-hex"
