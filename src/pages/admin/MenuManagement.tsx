@@ -100,6 +100,7 @@ export default function MenuManagement() {
   const [showForm, setShowForm] = useState(false);
   const [autoAudio, setAutoAudio] = useState(true);
   const [customAllergen, setCustomAllergen] = useState("");
+  const [formErrors, setFormErrors] = useState<{ name?: string; price?: string }>({});
 
   const { data: items, isLoading } = useQuery({
     queryKey: ["admin_menu_items", restaurantId],
@@ -147,6 +148,9 @@ export default function MenuManagement() {
       setEditingId(null);
       setShowForm(false);
       setAutoAudio(true);
+    },
+    onError: (err: any) => {
+      toast.error("Não foi possível salvar o item: " + (err?.message || "tente novamente."));
     },
   });
 
@@ -254,49 +258,127 @@ export default function MenuManagement() {
               {editingId ? "Editar Item" : "Novo Item"}
             </h2>
             <form
-              onSubmit={(e) => { e.preventDefault(); saveMutation.mutate(form); }}
+              onSubmit={(e) => {
+                e.preventDefault();
+                const errors: { name?: string; price?: string } = {};
+                if (!form.name.trim()) errors.name = "Digite o nome do prato.";
+                if (!form.price || form.price <= 0) errors.price = "Digite um preço maior que zero.";
+                setFormErrors(errors);
+                if (Object.keys(errors).length > 0) {
+                  toast.error("Corrija os campos destacados antes de salvar.");
+                  return;
+                }
+                saveMutation.mutate(form);
+              }}
+              noValidate
               className="grid gap-4 sm:grid-cols-2"
             >
               <div>
-                <label className={labelClass}>Nome *</label>
-                <input className={inputClass} value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required />
+                <label className={labelClass} htmlFor="item-name">
+                  Nome <span aria-hidden="true">*</span>
+                  <span className="sr-only"> (obrigatório)</span>
+                </label>
+                <input
+                  id="item-name"
+                  className={inputClass}
+                  value={form.name}
+                  onChange={(e) => setForm({ ...form, name: e.target.value })}
+                  required
+                  aria-required="true"
+                  aria-invalid={!!formErrors.name}
+                  aria-describedby={formErrors.name ? "item-name-error" : undefined}
+                />
+                {formErrors.name && (
+                  <p id="item-name-error" role="alert" className="text-sm text-destructive mt-1">
+                    {formErrors.name}
+                  </p>
+                )}
               </div>
               <div>
-                <label className={labelClass}>Preço (R$) *</label>
-                <input className={inputClass} type="number" step="0.01" min="0" value={form.price} onChange={(e) => setForm({ ...form, price: parseFloat(e.target.value) || 0 })} required />
+                <label className={labelClass} htmlFor="item-price">
+                  Preço (R$) <span aria-hidden="true">*</span>
+                  <span className="sr-only"> (obrigatório)</span>
+                </label>
+                <input
+                  id="item-price"
+                  className={inputClass}
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  value={form.price}
+                  onChange={(e) => setForm({ ...form, price: parseFloat(e.target.value) || 0 })}
+                  required
+                  aria-required="true"
+                  aria-invalid={!!formErrors.price}
+                  aria-describedby={formErrors.price ? "item-price-error" : undefined}
+                />
+                {formErrors.price && (
+                  <p id="item-price-error" role="alert" className="text-sm text-destructive mt-1">
+                    {formErrors.price}
+                  </p>
+                )}
               </div>
               <div>
-                <label className={labelClass}>Categoria</label>
-                <select className={inputClass} value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value as MenuCategory })}>
+                <label className={labelClass} htmlFor="item-category">Categoria</label>
+                <select
+                  id="item-category"
+                  className={inputClass}
+                  value={form.category}
+                  onChange={(e) => setForm({ ...form, category: e.target.value as MenuCategory })}
+                >
                   {categories.map((c) => <option key={c.value} value={c.value}>{c.label}</option>)}
                 </select>
               </div>
               <div>
-                <label className={labelClass}>Ordem</label>
-                <input className={inputClass} type="number" value={form.sort_order} onChange={(e) => setForm({ ...form, sort_order: parseInt(e.target.value) || 0 })} />
+                <label className={labelClass} htmlFor="item-sort-order">Ordem</label>
+                <input
+                  id="item-sort-order"
+                  className={inputClass}
+                  type="number"
+                  value={form.sort_order}
+                  onChange={(e) => setForm({ ...form, sort_order: parseInt(e.target.value) || 0 })}
+                />
               </div>
               <div className="sm:col-span-2">
-                <label className={labelClass}>Descrição</label>
-                <textarea className={inputClass} rows={2} value={form.description || ""} onChange={(e) => setForm({ ...form, description: e.target.value })} placeholder="Descrição do prato" />
+                <label className={labelClass} htmlFor="item-description">Descrição</label>
+                <textarea
+                  id="item-description"
+                  className={inputClass}
+                  rows={2}
+                  value={form.description || ""}
+                  onChange={(e) => setForm({ ...form, description: e.target.value })}
+                  placeholder="Descrição do prato"
+                />
               </div>
               <div className="sm:col-span-2">
-                <label className={labelClass}>Ingredientes</label>
-                <textarea className={inputClass} rows={2} value={form.ingredients || ""} onChange={(e) => setForm({ ...form, ingredients: e.target.value })} />
+                <label className={labelClass} htmlFor="item-ingredients">Ingredientes</label>
+                <textarea
+                  id="item-ingredients"
+                  className={inputClass}
+                  rows={2}
+                  value={form.ingredients || ""}
+                  onChange={(e) => setForm({ ...form, ingredients: e.target.value })}
+                />
               </div>
               <div className="sm:col-span-2">
-                <label className={labelClass}>Alérgenos</label>
-                <div className="flex flex-wrap gap-2 mt-1">
-                  {allergenOptions.map((a) => (
-                    <button
-                      key={a.value}
-                      type="button"
-                      onClick={() => toggleAllergen(a.value)}
-                      className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors border
-                        ${(form.allergens || []).includes(a.value) ? "bg-destructive text-destructive-foreground border-destructive" : "bg-secondary text-secondary-foreground border-border"}`}
-                    >
-                      {a.label}
-                    </button>
-                  ))}
+                <span className={labelClass} id="item-allergens-label">Alérgenos</span>
+                <div className="flex flex-wrap gap-2 mt-1" role="group" aria-labelledby="item-allergens-label">
+                  {allergenOptions.map((a) => {
+                    const isSelected = (form.allergens || []).includes(a.value);
+                    return (
+                      <button
+                        key={a.value}
+                        type="button"
+                        onClick={() => toggleAllergen(a.value)}
+                        aria-pressed={isSelected}
+                        aria-label={`${a.label}${isSelected ? ", selecionado" : ""}`}
+                        className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors border
+                          ${isSelected ? "bg-destructive text-destructive-foreground border-destructive" : "bg-secondary text-secondary-foreground border-border"}`}
+                      >
+                        {a.label}
+                      </button>
+                    );
+                  })}
                   {(form.allergens || [])
                     .filter((a) => !allergenOptions.some((o) => o.value === a))
                     .map((a) => (
@@ -305,14 +387,16 @@ export default function MenuManagement() {
                         type="button"
                         onClick={() => toggleAllergen(a)}
                         className="px-3 py-1.5 rounded-full text-xs font-medium transition-colors border bg-destructive text-destructive-foreground border-destructive"
-                        aria-label={`Remover ${a}`}
+                        aria-label={`${a}, selecionado. Ativar para remover`}
                       >
                         {a} ✕
                       </button>
                     ))}
                 </div>
                 <div className="flex gap-2 mt-3">
+                  <label htmlFor="item-custom-allergen" className="sr-only">Adicionar outro alérgeno</label>
                   <input
+                    id="item-custom-allergen"
                     type="text"
                     value={customAllergen}
                     onChange={(e) => setCustomAllergen(e.target.value)}
@@ -324,7 +408,6 @@ export default function MenuManagement() {
                     }}
                     placeholder="Outro alérgeno..."
                     className={inputClass}
-                    aria-label="Adicionar outro alérgeno"
                   />
                   <button
                     type="button"
@@ -348,26 +431,34 @@ export default function MenuManagement() {
                 }
               />
               <div className="sm:col-span-2">
-                <label className={labelClass}>Texto para Áudio</label>
+                <label className={labelClass} htmlFor="item-audio-text">Texto para Áudio</label>
                 <textarea
+                  id="item-audio-text"
                   className={inputClass}
                   rows={3}
                   value={form.audio_text || ""}
                   onChange={(e) => { setAutoAudio(false); setForm({ ...form, audio_text: e.target.value }); }}
                   placeholder="Gerado automaticamente: Nome. Preço. Descrição. Ingredientes."
+                  aria-describedby="item-audio-text-status"
                 />
-                <p className="text-xs text-muted-foreground mt-1">
+                <p id="item-audio-text-status" className="text-xs text-muted-foreground mt-1">
                   {autoAudio ? "✨ Preenchido automaticamente" : "Editado manualmente"}
                 </p>
               </div>
               <div className="sm:col-span-2">
                 <p className="text-xs text-muted-foreground">
-                  💡 A ilustração dos ingredientes será gerada automaticamente por IA quando o cliente clicar em "Ver ingredientes" no cardápio.
+                  💡 A ilustração dos ingredientes será gerada automaticamente por IA quando o cliente clicar em "Ver ingredientes" no cardápio, a menos que você suba uma foto própria acima.
                 </p>
               </div>
               <div className="sm:col-span-2 flex items-center gap-3">
-                <label className="flex items-center gap-2 cursor-pointer">
-                  <input type="checkbox" checked={form.is_available} onChange={(e) => setForm({ ...form, is_available: e.target.checked })} className="w-4 h-4 accent-primary" />
+                <label className="flex items-center gap-2 cursor-pointer" htmlFor="item-is-available">
+                  <input
+                    id="item-is-available"
+                    type="checkbox"
+                    checked={form.is_available}
+                    onChange={(e) => setForm({ ...form, is_available: e.target.checked })}
+                    className="w-4 h-4 accent-primary"
+                  />
                   <span className="text-sm font-medium text-foreground">Disponível</span>
                 </label>
               </div>
@@ -375,7 +466,7 @@ export default function MenuManagement() {
                 <button type="submit" disabled={saveMutation.isPending} className="px-6 py-2.5 rounded-md bg-primary text-primary-foreground font-bold text-sm hover:bg-primary/90 transition-colors">
                   {saveMutation.isPending ? "Salvando..." : editingId ? "Atualizar" : "Criar"}
                 </button>
-                <button type="button" onClick={() => { setShowForm(false); setEditingId(null); setForm(emptyForm); setAutoAudio(true); }} className="px-6 py-2.5 rounded-md bg-secondary text-secondary-foreground font-medium text-sm">
+                <button type="button" onClick={() => { setShowForm(false); setEditingId(null); setForm(emptyForm); setAutoAudio(true); setFormErrors({}); }} className="px-6 py-2.5 rounded-md bg-secondary text-secondary-foreground font-medium text-sm">
                   Cancelar
                 </button>
               </div>
