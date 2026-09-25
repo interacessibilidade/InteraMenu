@@ -27,6 +27,8 @@ import {
 import { CSS } from "@dnd-kit/utilities";
 import { restrictToVerticalAxis, restrictToParentElement } from "@dnd-kit/modifiers";
 import { toast } from "sonner";
+import { AccessibilityToolbar } from "@/components/AccessibilityToolbar";
+import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 
 type MenuItem = Database["public"]["Tables"]["menu_items"]["Row"];
 type MenuInsert = Database["public"]["Tables"]["menu_items"]["Insert"];
@@ -87,21 +89,61 @@ function buildAutoAudioText(form: Omit<MenuInsert, "id">) {
   if (form.name) parts.push(form.name);
   if (form.price) parts.push(`R$ ${Number(form.price).toFixed(2).replace(".", ",")}`);
   if (form.description) parts.push(String(form.description));
-  if (form.ingredients) parts.push(String(form.ingredients));
+  if (form.ingredients) parts.push(`Ingredientes: ${String(form.ingredients)}`);
   return parts.join(". ") + ".";
 }
 
 export default function MenuManagement() {
+  useDocumentTitle("Gestão do cardápio — InteraMenu");
   const queryClient = useQueryClient();
-  const { restaurantId } = useAuth();
+  const { restaurantId, loading: authLoading } = useAuth();
   const formRef = useRef<HTMLDivElement>(null);
   const nameInputRef = useRef<HTMLInputElement>(null);
-  const [form, setForm] = useState<Omit<MenuInsert, "id">>(emptyForm);
-  const [editingId, setEditingId] = useState<string | null>(null);
-  const [showForm, setShowForm] = useState(false);
+  const DRAFT_KEY = "interamenu_menu_item_draft";
+  const [form, setForm] = useState<Omit<MenuInsert, "id">>(() => {
+    try {
+      const saved = sessionStorage.getItem(DRAFT_KEY);
+      if (saved) return JSON.parse(saved).form ?? emptyForm;
+    } catch {
+      // ignora rascunho corrompido
+    }
+    return emptyForm;
+  });
+  const [editingId, setEditingId] = useState<string | null>(() => {
+    try {
+      const saved = sessionStorage.getItem(DRAFT_KEY);
+      if (saved) return JSON.parse(saved).editingId ?? null;
+    } catch {
+      // ignora
+    }
+    return null;
+  });
+  const [showForm, setShowForm] = useState(() => {
+    try {
+      return !!sessionStorage.getItem(DRAFT_KEY);
+    } catch {
+      return false;
+    }
+  });
   const [autoAudio, setAutoAudio] = useState(true);
   const [customAllergen, setCustomAllergen] = useState("");
   const [formErrors, setFormErrors] = useState<{ name?: string; price?: string }>({});
+  const [statusMessage, setStatusMessage] = useState("");
+
+  // Mantém um rascunho do formulário salvo, para não perder o que foi
+  // digitado caso a página recarregue (ex: ao voltar de uma troca de app
+  // no celular durante o upload de uma foto).
+  useEffect(() => {
+    try {
+      if (showForm) {
+        sessionStorage.setItem(DRAFT_KEY, JSON.stringify({ form, editingId }));
+      } else {
+        sessionStorage.removeItem(DRAFT_KEY);
+      }
+    } catch {
+      // armazenamento indisponível — segue sem rascunho, sem quebrar a tela
+    }
+  }, [form, editingId, showForm]);
 
   const { data: items, isLoading } = useQuery({
     queryKey: ["admin_menu_items", restaurantId],
@@ -138,13 +180,18 @@ export default function MenuManagement() {
         const { error } = await supabase.from("menu_items").update(data).eq("id", editingId);
         if (error) throw error;
       } else {
-        if (!restaurantId) throw new Error("Restaurante não identificado. Faça login novamente.");
+        if (!restaurantId) {
+          throw new Error(
+            "Ainda estamos carregando os dados da sua conta. Aguarde alguns segundos e tente salvar de novo."
+          );
+        }
         const { error } = await supabase.from("menu_items").insert({ ...data, restaurant_id: restaurantId });
         if (error) throw error;
       }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin_menu_items"] });
+      setStatusMessage(editingId ? "Item do cardápio atualizado." : "Item do cardápio cadastrado.");
       setForm(emptyForm);
       setEditingId(null);
       setShowForm(false);
@@ -228,6 +275,9 @@ export default function MenuManagement() {
 
   return (
     <div className="min-h-screen bg-background">
+      <p role="status" aria-live="polite" className="sr-only">
+        {statusMessage}
+      </p>
       <header className="sticky top-0 z-30 bg-background/95 backdrop-blur border-b border-border">
         <div className="container py-4 flex items-center gap-3 flex-wrap">
           <Link to="/admin" className="p-2 rounded-md hover:bg-secondary transition-colors" aria-label="Voltar para gestão do cardápio">
@@ -373,9 +423,14 @@ export default function MenuManagement() {
                   onChange={(e) => setForm({ ...form, ingredients: e.target.value })}
                 />
               </div>
-              <div className="sm:col-span-2">
-                <span className={labelClass} id="item-allergens-label">Alérgenos</span>
-                <div className="flex flex-wrap gap-2 mt-1" role="group" aria-labelledby="item-allergens-label">
+              <fieldset className="sm:col-span-2 border-0 p-0 m-0">
+                <legend className={labelClass}>
+                  Alérgenos
+                  <span className="block font-normal text-xs text-muted-foreground mt-0.5">
+                    Informe se o item contém algum destes alérgenos
+                  </span>
+                </legend>
+                <div className="flex flex-wrap gap-2 mt-1">
                   {allergenOptions.map((a) => {
                     const isSelected = (form.allergens || []).includes(a.value);
                     return (
@@ -431,7 +486,7 @@ export default function MenuManagement() {
                     + Outro
                   </button>
                 </div>
-              </div>
+              </fieldset>
               <ImageUpload
                 currentUrl={form.image_url || ""}
                 onUrlChange={(url) => setForm((prev) => ({ ...prev, image_url: url }))}
@@ -485,11 +540,11 @@ export default function MenuManagement() {
               <div className="sm:col-span-2 flex gap-3">
                 <button
                   type="submit"
-                  disabled={saveMutation.isPending}
+                  disabled={saveMutation.isPending || authLoading}
                   aria-label={editingId ? "Atualizar item de cardápio" : "Criar item de cardápio"}
-                  className="px-6 py-2.5 rounded-md bg-primary text-primary-foreground font-bold text-sm hover:bg-primary/90 transition-colors"
+                  className="px-6 py-2.5 rounded-md bg-primary text-primary-foreground font-bold text-sm hover:bg-primary/90 transition-colors disabled:opacity-60"
                 >
-                  {saveMutation.isPending ? "Salvando..." : editingId ? "Atualizar" : "Criar"}
+                  {saveMutation.isPending ? "Salvando..." : authLoading ? "Carregando conta..." : editingId ? "Atualizar" : "Criar"}
                 </button>
                 <button
                   type="button"
@@ -515,6 +570,7 @@ export default function MenuManagement() {
           />
         )}
       </main>
+      <AccessibilityToolbar />
     </div>
   );
 }
