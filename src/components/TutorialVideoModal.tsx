@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useLanguage } from "@/hooks/useLanguage";
 
 // Vídeo estático, servido direto da pasta public/ (copiado para dist/ no build).
-const TUTORIAL_VIDEO_URL = "/video-como-usar.mp4";
+const TUTORIAL_VIDEO_URL = "/video_como_usar.mp4";
 
 interface TutorialVideoModalProps {
   open: boolean;
