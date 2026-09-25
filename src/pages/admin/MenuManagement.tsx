@@ -602,7 +602,11 @@ function SortableItem({ item, onEdit, onDelete }: SortableItemProps) {
           <Edit2 className="w-4 h-4" />
         </button>
         <button
-          onClick={() => onDelete(item.id)}
+          onClick={() => {
+            if (window.confirm(`Tem certeza que deseja excluir "${item.name}"? Essa ação não pode ser desfeita.`)) {
+              onDelete(item.id);
+            }
+          }}
           className="p-2 rounded-md hover:bg-destructive/10 text-destructive transition-colors"
           aria-label={`Excluir ${item.name}`}
         >
