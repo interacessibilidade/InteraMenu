@@ -51,6 +51,57 @@ export function contrastingForegroundHsl(hex: string): string {
 
 // Estilo inline pronto para aplicar num elemento envolvente, sobrescrevendo
 // as variáveis de cor principal do tema para essa árvore de componentes.
+// Calcula a luminância relativa (fórmula oficial do WCAG) de uma cor hex.
+function relativeLuminance(hex: string): number {
+  const clean = hex.replace("#", "");
+  const r = parseInt(clean.slice(0, 2), 16) / 255;
+  const g = parseInt(clean.slice(2, 4), 16) / 255;
+  const b = parseInt(clean.slice(4, 6), 16) / 255;
+
+  const linearize = (c: number) => (c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4));
+
+  return 0.2126 * linearize(r) + 0.7152 * linearize(g) + 0.0722 * linearize(b);
+}
+
+// Razão de contraste WCAG entre duas cores hex (1:1 a 21:1).
+export function contrastRatio(hexA: string, hexB: string): number {
+  const lumA = relativeLuminance(hexA);
+  const lumB = relativeLuminance(hexB);
+  const lighter = Math.max(lumA, lumB);
+  const darker = Math.min(lumA, lumB);
+  return (lighter + 0.05) / (darker + 0.05);
+}
+
+// Verifica se uma cor escolhida como "cor principal" é acessível: precisa ser
+// distinguível do fundo branco da página (3:1, contraste de componente de UI)
+// e precisa permitir texto legível em cima dela, preto ou branco (4,5:1).
+export function validateBrandColorContrast(hex: string): { ok: boolean; message?: string } {
+  if (!/^#[0-9a-fA-F]{6}$/.test(hex)) {
+    return { ok: false, message: "Cor inválida. Use o formato #RRGGBB." };
+  }
+
+  const contrastWithPageBackground = contrastRatio(hex, "#FFFFFF");
+  if (contrastWithPageBackground < 3) {
+    return {
+      ok: false,
+      message:
+        "Essa cor é muito clara e fica pouco visível sobre o fundo branco do cardápio. Escolha uma cor mais escura ou mais saturada.",
+    };
+  }
+
+  const contrastWithWhiteText = contrastRatio(hex, "#FFFFFF");
+  const contrastWithBlackText = contrastRatio(hex, "#000000");
+  if (Math.max(contrastWithWhiteText, contrastWithBlackText) < 4.5) {
+    return {
+      ok: false,
+      message:
+        "Com essa cor, o texto por cima fica com contraste insuficiente (nem preto nem branco leem bem). Escolha uma cor mais escura ou mais clara.",
+    };
+  }
+
+  return { ok: true };
+}
+
 export function restaurantThemeStyle(primaryColorHex?: string | null): Record<string, string> {
   if (!primaryColorHex) return {};
   const hsl = hexToHslString(primaryColorHex);
