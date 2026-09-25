@@ -140,9 +140,12 @@ export default function QRCodeGenerator() {
                         className="flex-1 px-2 py-1.5 rounded-md bg-background border border-input text-foreground text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                         value={customName}
                         onChange={(e) => setNames((p) => ({ ...p, [num]: e.target.value }))}
-                        onBlur={() => handleSaveName(num)}
-                        onKeyDown={(e) => { if (e.key === "Enter") (e.target as HTMLInputElement).blur(); }}
+                        onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); handleSaveName(num); } }}
+                        aria-describedby={`name-${num}-hint`}
                       />
+                      <span id={`name-${num}-hint`} className="sr-only">
+                        Digite um nome para esta mesa e ative o botão Salvar para confirmar
+                      </span>
                       <button
                         type="button"
                         onClick={() => handleSaveName(num)}
