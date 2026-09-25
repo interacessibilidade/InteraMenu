@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, type KeyboardEvent } from "react";
 import { useLanguage, type Language } from "@/hooks/useLanguage";
 import { Globe, ChevronDown } from "lucide-react";
 
@@ -15,6 +15,8 @@ export function LanguageSelector() {
 
   const current = languages.find((l) => l.value === language)!;
 
+  const listboxRef = useRef<HTMLDivElement>(null);
+
   useEffect(() => {
     if (open && firstItemRef.current) {
       firstItemRef.current.focus();
@@ -30,6 +32,32 @@ export function LanguageSelector() {
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
+
+  const handleListKeyDown = (e: KeyboardEvent) => {
+    const list = listboxRef.current;
+    if (!list) return;
+    const options = Array.from(list.querySelectorAll<HTMLButtonElement>('[role="option"]'));
+    const currentIndex = options.findIndex((el) => el === document.activeElement);
+
+    if (e.key === "ArrowDown") {
+      e.preventDefault();
+      const next = options[(currentIndex + 1) % options.length];
+      next?.focus();
+    } else if (e.key === "ArrowUp") {
+      e.preventDefault();
+      const prev = options[(currentIndex - 1 + options.length) % options.length];
+      prev?.focus();
+    } else if (e.key === "Home") {
+      e.preventDefault();
+      options[0]?.focus();
+    } else if (e.key === "End") {
+      e.preventDefault();
+      options[options.length - 1]?.focus();
+    } else if (e.key === "Escape") {
+      e.preventDefault();
+      setOpen(false);
+    }
+  };
 
   return (
     <div ref={containerRef} className="relative" role="group" aria-label={t("language.options")}>
@@ -49,8 +77,10 @@ export function LanguageSelector() {
 
       {open && (
         <div
+          ref={listboxRef}
           role="listbox"
           aria-label={t("language.select")}
+          onKeyDown={handleListKeyDown}
           className="absolute right-0 top-full mt-1 w-48 bg-popover border border-border rounded-md shadow-lg py-1 z-50"
         >
           {languages.map((l, i) => (
