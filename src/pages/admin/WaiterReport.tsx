@@ -122,13 +122,16 @@ export default function WaiterReport() {
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
+              <caption className="sr-only">
+                Relatório de chamados de garçom em {formatDate(`${dateFilter}T12:00:00`)}: mesa, horário da solicitação, horário do atendimento, tempo decorrido e status.
+              </caption>
               <thead>
                 <tr className="border-b border-border">
-                  <th className="text-left py-3 px-2 font-semibold text-foreground">Mesa</th>
-                  <th className="text-left py-3 px-2 font-semibold text-foreground">Solicitação</th>
-                  <th className="text-left py-3 px-2 font-semibold text-foreground">Atendimento</th>
-                  <th className="text-left py-3 px-2 font-semibold text-foreground">Tempo</th>
-                  <th className="text-left py-3 px-2 font-semibold text-foreground">Status</th>
+                  <th scope="col" className="text-left py-3 px-2 font-semibold text-foreground">Mesa</th>
+                  <th scope="col" className="text-left py-3 px-2 font-semibold text-foreground">Solicitação</th>
+                  <th scope="col" className="text-left py-3 px-2 font-semibold text-foreground">Atendimento</th>
+                  <th scope="col" className="text-left py-3 px-2 font-semibold text-foreground">Tempo</th>
+                  <th scope="col" className="text-left py-3 px-2 font-semibold text-foreground">Status</th>
                 </tr>
               </thead>
               <tbody>
