@@ -156,7 +156,7 @@ export function TutorialVideoModal({ open, onClose }: TutorialVideoModalProps) {
             </div>
 
             {/* Video */}
-            <div className="bg-black flex-1 min-h-0 flex items-center justify-center">
+            <div className="bg-black flex-1 min-h-0 max-h-[60vh] flex items-center justify-center">
               <video
                 ref={videoRef}
                 src={TUTORIAL_VIDEO_URL}
