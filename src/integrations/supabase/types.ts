@@ -198,10 +198,12 @@ export type Database = {
         Row: {
           contact_email: string | null
           created_at: string
+          enable_ordering: boolean
           id: string
           logo_url: string | null
           name: string
           primary_color: string | null
+          service_fee_percent: number
           show_ingredients_button: boolean
           slug: string
           status: string
@@ -210,10 +212,12 @@ export type Database = {
         Insert: {
           contact_email?: string | null
           created_at?: string
+          enable_ordering?: boolean
           id?: string
           logo_url?: string | null
           name: string
           primary_color?: string | null
+          service_fee_percent?: number
           show_ingredients_button?: boolean
           slug: string
           status?: string
@@ -222,16 +226,167 @@ export type Database = {
         Update: {
           contact_email?: string | null
           created_at?: string
+          enable_ordering?: boolean
           id?: string
           logo_url?: string | null
           name?: string
           primary_color?: string | null
+          service_fee_percent?: number
           show_ingredients_button?: boolean
           slug?: string
           status?: string
           updated_at?: string
         }
         Relationships: []
+      }
+      table_sessions: {
+        Row: {
+          closed_at: string | null
+          id: string
+          opened_at: string
+          restaurant_id: string
+          service_fee_amount: number | null
+          service_fee_percent: number | null
+          status: string
+          subtotal: number | null
+          table_number: number
+          total_amount: number | null
+        }
+        Insert: {
+          closed_at?: string | null
+          id?: string
+          opened_at?: string
+          restaurant_id: string
+          service_fee_amount?: number | null
+          service_fee_percent?: number | null
+          status?: string
+          subtotal?: number | null
+          table_number: number
+          total_amount?: number | null
+        }
+        Update: {
+          closed_at?: string | null
+          id?: string
+          opened_at?: string
+          restaurant_id?: string
+          service_fee_amount?: number | null
+          service_fee_percent?: number | null
+          status?: string
+          subtotal?: number | null
+          table_number?: number
+          total_amount?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "table_sessions_restaurant_id_fkey"
+            columns: ["restaurant_id"]
+            isOneToOne: false
+            referencedRelation: "restaurants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      orders: {
+        Row: {
+          canceled_at: string | null
+          canceled_reason: string | null
+          confirmed_at: string | null
+          created_at: string
+          delivered_at: string | null
+          id: string
+          notes: string | null
+          restaurant_id: string
+          session_id: string
+          status: string
+          table_number: number
+        }
+        Insert: {
+          canceled_at?: string | null
+          canceled_reason?: string | null
+          confirmed_at?: string | null
+          created_at?: string
+          delivered_at?: string | null
+          id?: string
+          notes?: string | null
+          restaurant_id: string
+          session_id: string
+          status?: string
+          table_number: number
+        }
+        Update: {
+          canceled_at?: string | null
+          canceled_reason?: string | null
+          confirmed_at?: string | null
+          created_at?: string
+          delivered_at?: string | null
+          id?: string
+          notes?: string | null
+          restaurant_id?: string
+          session_id?: string
+          status?: string
+          table_number?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "orders_restaurant_id_fkey"
+            columns: ["restaurant_id"]
+            isOneToOne: false
+            referencedRelation: "restaurants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "orders_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "table_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      order_items: {
+        Row: {
+          id: string
+          item_name: string
+          item_price: number
+          menu_item_id: string | null
+          notes: string | null
+          order_id: string
+          quantity: number
+        }
+        Insert: {
+          id?: string
+          item_name: string
+          item_price: number
+          menu_item_id?: string | null
+          notes?: string | null
+          order_id: string
+          quantity?: number
+        }
+        Update: {
+          id?: string
+          item_name?: string
+          item_price?: number
+          menu_item_id?: string | null
+          notes?: string | null
+          order_id?: string
+          quantity?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "order_items_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "order_items_menu_item_id_fkey"
+            columns: ["menu_item_id"]
+            isOneToOne: false
+            referencedRelation: "menu_items"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       tables: {
         Row: {
@@ -342,6 +497,19 @@ export type Database = {
     Functions: {
       create_restaurant_and_owner: {
         Args: { _name: string; _slug: string }
+        Returns: string
+      }
+      create_order: {
+        Args: {
+          p_restaurant_id: string
+          p_table_number: number
+          p_items: Json
+          p_notes?: string | null
+        }
+        Returns: string
+      }
+      get_or_create_open_table_session: {
+        Args: { p_restaurant_id: string; p_table_number: number }
         Returns: string
       }
       get_user_restaurant_id: { Args: { _user_id: string }; Returns: string }
