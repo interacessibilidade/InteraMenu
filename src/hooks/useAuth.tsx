@@ -13,6 +13,8 @@ interface AuthContextValue {
   restaurantName: string | null;
   restaurantLogoUrl: string | null;
   restaurantPrimaryColor: string | null;
+  restaurantEnableOrdering: boolean;
+  restaurantServiceFeePercent: number;
   loading: boolean;
   isSuperAdmin: boolean;
   signOut: () => Promise<void>;
@@ -29,6 +31,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [restaurantName, setRestaurantName] = useState<string | null>(null);
   const [restaurantLogoUrl, setRestaurantLogoUrl] = useState<string | null>(null);
   const [restaurantPrimaryColor, setRestaurantPrimaryColor] = useState<string | null>(null);
+  const [restaurantEnableOrdering, setRestaurantEnableOrdering] = useState(false);
+  const [restaurantServiceFeePercent, setRestaurantServiceFeePercent] = useState(10);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -45,6 +49,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setRestaurantName(null);
         setRestaurantLogoUrl(null);
         setRestaurantPrimaryColor(null);
+        setRestaurantEnableOrdering(false);
+        setRestaurantServiceFeePercent(10);
         setLoading(false);
       }
     });
@@ -66,7 +72,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   async function applyRoleData(userId: string) {
     const { data, error } = await supabase
       .from("user_roles")
-      .select("role, restaurant_id, restaurants(slug, name, logo_url, primary_color)")
+      .select("role, restaurant_id, restaurants(slug, name, logo_url, primary_color, enable_ordering, service_fee_percent)")
       .eq("user_id", userId)
       .maybeSingle();
 
@@ -77,6 +83,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setRestaurantName((data as any).restaurants?.name ?? null);
       setRestaurantLogoUrl((data as any).restaurants?.logo_url ?? null);
       setRestaurantPrimaryColor((data as any).restaurants?.primary_color ?? null);
+      setRestaurantEnableOrdering(Boolean((data as any).restaurants?.enable_ordering));
+      setRestaurantServiceFeePercent(
+        (data as any).restaurants?.service_fee_percent != null
+          ? Number((data as any).restaurants.service_fee_percent)
+          : 10
+      );
     } else {
       setRole(null);
       setRestaurantId(null);
@@ -84,6 +96,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setRestaurantName(null);
       setRestaurantLogoUrl(null);
       setRestaurantPrimaryColor(null);
+      setRestaurantEnableOrdering(false);
+      setRestaurantServiceFeePercent(10);
     }
   }
 
@@ -118,6 +132,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     restaurantName,
     restaurantLogoUrl,
     restaurantPrimaryColor,
+    restaurantEnableOrdering,
+    restaurantServiceFeePercent,
     loading,
     isSuperAdmin: role === "super_admin",
     signOut,
