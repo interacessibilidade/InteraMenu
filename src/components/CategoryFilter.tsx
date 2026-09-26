@@ -2,59 +2,30 @@ import { useState, useRef, useEffect, type KeyboardEvent } from "react";
 import { useLanguage } from "@/hooks/useLanguage";
 import { ChevronDown } from "lucide-react";
 
-export type CategoryFilterValue =
-  | "all"
-  | "cafe_espresso"
-  | "chocolate"
-  | "sobremesa"
-  | "empanada_salgado"
-  | "metodos_extracao"
-  | "paulistinha"
-  | "waffles"
-  | "almoco"
-  | "espresso_gelado"
-  | "chocolate_gelado"
-  | "bebidas"
-  | "drinks_sem_alcool"
-  | "chai_latte"
-  | "chas"
-  | "drinks_especiais"
-  | "cervejas";
+// "all" ou o id (UUID) de uma restaurant_categories do restaurante atual.
+export type CategoryFilterValue = "all" | string;
 
-export const categoryFilterOrder: CategoryFilterValue[] = [
-  "cafe_espresso",
-  "chocolate",
-  "sobremesa",
-  "empanada_salgado",
-  "metodos_extracao",
-  "paulistinha",
-  "waffles",
-  "almoco",
-  "espresso_gelado",
-  "chocolate_gelado",
-  "bebidas",
-  "drinks_sem_alcool",
-  "chai_latte",
-  "chas",
-  "drinks_especiais",
-  "cervejas",
-];
+export interface CategoryFilterOption {
+  id: string;
+  name: string;
+}
 
 interface Props {
+  categories: CategoryFilterOption[];
   selected: CategoryFilterValue;
   onChange: (value: CategoryFilterValue) => void;
   showLabel?: boolean;
 }
 
-export function CategoryFilter({ selected, onChange, showLabel = true }: Props) {
+export function CategoryFilter({ categories, selected, onChange, showLabel = true }: Props) {
   const { t } = useLanguage();
   const [open, setOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const listboxRef = useRef<HTMLDivElement>(null);
   const firstItemRef = useRef<HTMLButtonElement>(null);
 
-  const allValues: CategoryFilterValue[] = ["all", ...categoryFilterOrder];
-  const currentLabel = selected === "all" ? t("filter.all") : t(`category.${selected}`);
+  const currentLabel =
+    selected === "all" ? t("filter.all") : categories.find((c) => c.id === selected)?.name ?? t("filter.all");
 
   useEffect(() => {
     if (open && firstItemRef.current) {
@@ -124,27 +95,38 @@ export function CategoryFilter({ selected, onChange, showLabel = true }: Props) 
             onKeyDown={handleListKeyDown}
             className="absolute left-0 right-0 top-full mt-1 max-h-[60vh] overflow-y-auto bg-popover border border-border rounded-md shadow-lg py-1 z-50"
           >
-            {allValues.map((cat, i) => {
-              const label = cat === "all" ? t("filter.all") : t(`category.${cat}`);
-              return (
-                <button
-                  type="button"
-                  key={cat}
-                  ref={i === 0 ? firstItemRef : undefined}
-                  role="option"
-                  aria-selected={selected === cat}
-                  aria-label={cat === "all" ? t("filter.aria.all") : label}
-                  onClick={() => {
-                    onChange(cat);
-                    setOpen(false);
-                  }}
-                  className={`w-full text-left px-4 py-2 text-sm transition-colors focus-visible:outline-none focus-visible:bg-accent focus-visible:text-accent-foreground
-                    ${selected === cat ? "bg-accent text-accent-foreground font-semibold" : "text-popover-foreground hover:bg-secondary"}`}
-                >
-                  {label}
-                </button>
-              );
-            })}
+            <button
+              type="button"
+              ref={firstItemRef}
+              role="option"
+              aria-selected={selected === "all"}
+              aria-label={t("filter.aria.all")}
+              onClick={() => {
+                onChange("all");
+                setOpen(false);
+              }}
+              className={`w-full text-left px-4 py-2 text-sm transition-colors focus-visible:outline-none focus-visible:bg-accent focus-visible:text-accent-foreground
+                ${selected === "all" ? "bg-accent text-accent-foreground font-semibold" : "text-popover-foreground hover:bg-secondary"}`}
+            >
+              {t("filter.all")}
+            </button>
+            {categories.map((cat) => (
+              <button
+                type="button"
+                key={cat.id}
+                role="option"
+                aria-selected={selected === cat.id}
+                aria-label={cat.name}
+                onClick={() => {
+                  onChange(cat.id);
+                  setOpen(false);
+                }}
+                className={`w-full text-left px-4 py-2 text-sm transition-colors focus-visible:outline-none focus-visible:bg-accent focus-visible:text-accent-foreground
+                  ${selected === cat.id ? "bg-accent text-accent-foreground font-semibold" : "text-popover-foreground hover:bg-secondary"}`}
+              >
+                {cat.name}
+              </button>
+            ))}
           </div>
         )}
       </div>
