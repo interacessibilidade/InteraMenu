@@ -106,8 +106,16 @@ export function restaurantThemeStyle(primaryColorHex?: string | null): Record<st
   if (!primaryColorHex) return {};
   const hsl = hexToHslString(primaryColorHex);
   if (!hsl) return {};
+  const foreground = contrastingForegroundHsl(primaryColorHex);
   return {
     ["--primary" as any]: hsl,
-    ["--primary-foreground" as any]: contrastingForegroundHsl(primaryColorHex),
+    ["--primary-foreground" as any]: foreground,
+    // "accent" (usado em itens selecionados/foco de menus) e "ring" (o contorno
+    // de foco do teclado) também precisam seguir a cor da identidade — do
+    // contrário eles continuam na cor verde padrão do tema em vez da cor
+    // escolhida pelo restaurante.
+    ["--accent" as any]: hsl,
+    ["--accent-foreground" as any]: foreground,
+    ["--ring" as any]: hsl,
   };
 }
