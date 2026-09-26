@@ -5,7 +5,8 @@ import { AccessibilityToolbar } from "@/components/AccessibilityToolbar";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import { restaurantThemeStyle } from "@/lib/restaurantTheme";
 
-const navItems = [
+function buildNavItems(orderingEnabled: boolean) {
+  return [
   {
     title: "Cadastro de Item do Cardápio",
     description: "Cadastrar ou editar pratos do cardápio",
@@ -15,10 +16,12 @@ const navItems = [
   },
   {
     title: "Painel de Atendimento",
-    description: "Visualizar e atender pedidos das mesas",
+    description: orderingEnabled
+      ? "Chamados de garçom e pedidos online das mesas"
+      : "Visualizar e atender chamados das mesas",
     to: "/admin/painel",
     icon: Bell,
-    ariaLabel: "Ir para o painel de atendimento do garçom",
+    ariaLabel: "Ir para o painel de atendimento",
   },
   {
     title: "QR Codes das Mesas",
@@ -48,11 +51,13 @@ const navItems = [
     icon: FileText,
     ariaLabel: "Ir para a versão em PDF do cardápio",
   },
-];
+  ];
+}
 
 export default function AdminDashboard() {
   useDocumentTitle("Gestão do Cardápio — InteraMenu");
-  const { restaurantName, restaurantLogoUrl, restaurantPrimaryColor, isSuperAdmin, signOut, user } = useAuth();
+  const { restaurantName, restaurantLogoUrl, restaurantPrimaryColor, restaurantEnableOrdering, isSuperAdmin, signOut, user } = useAuth();
+  const navItems = buildNavItems(restaurantEnableOrdering);
 
   return (
     <div className="min-h-screen bg-background" style={restaurantThemeStyle(restaurantPrimaryColor)}>
