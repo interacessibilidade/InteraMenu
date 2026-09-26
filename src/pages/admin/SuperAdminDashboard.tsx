@@ -16,6 +16,7 @@ interface RestaurantRow {
   contact_email: string | null;
   created_at: string;
   show_ingredients_button: boolean;
+  enable_ordering: boolean;
 }
 
 export default function SuperAdminDashboard() {
@@ -29,7 +30,7 @@ export default function SuperAdminDashboard() {
     setLoading(true);
     const { data, error } = await supabase
       .from("restaurants")
-      .select("id, name, slug, status, contact_email, created_at, show_ingredients_button")
+      .select("id, name, slug, status, contact_email, created_at, show_ingredients_button, enable_ordering")
       .order("created_at", { ascending: false });
 
     if (error) {
@@ -86,6 +87,27 @@ export default function SuperAdminDashboard() {
     toast.success(`${newValue ? "Ativado" : "Desativado"} para ${restaurant.name}.`);
   }
 
+  async function toggleOrderingFeature(restaurant: RestaurantRow) {
+    const newValue = !restaurant.enable_ordering;
+    const { error } = await supabase
+      .from("restaurants")
+      .update({ enable_ordering: newValue } as any)
+      .eq("id", restaurant.id);
+
+    if (error) {
+      toast.error("Não foi possível atualizar esse recurso.");
+      return;
+    }
+
+    setRestaurants((prev) =>
+      prev.map((r) => (r.id === restaurant.id ? { ...r, enable_ordering: newValue } : r))
+    );
+    setStatusMessage(
+      `Pedido Online (Opção 2) agora está ${newValue ? "ativado" : "desativado"} para ${restaurant.name}.`
+    );
+    toast.success(`${newValue ? "Ativado" : "Desativado"} para ${restaurant.name}.`);
+  }
+
   return (
     <div className="min-h-screen bg-background">
       <header className="sticky top-0 z-30 border-b border-border bg-background/95 backdrop-blur">
@@ -138,6 +160,7 @@ export default function SuperAdminDashboard() {
                   <th scope="col" className="py-2 pr-4 font-semibold text-foreground">Status</th>
                   <th scope="col" className="py-2 pr-4 font-semibold text-foreground">Cadastrado em</th>
                   <th scope="col" className="py-2 pr-4 font-semibold text-foreground">Foto ingredientes (IA)</th>
+                  <th scope="col" className="py-2 pr-4 font-semibold text-foreground">Pedido Online (Opção 2)</th>
                   <th scope="col" className="py-2 font-semibold text-foreground">Ação</th>
                 </tr>
               </thead>
@@ -168,6 +191,16 @@ export default function SuperAdminDashboard() {
                         aria-label={`${r.show_ingredients_button ? "Desativar" : "Ativar"} foto de ingredientes por IA para ${r.name}`}
                       >
                         {r.show_ingredients_button ? "Ativo" : "Inativo"}
+                      </Button>
+                    </td>
+                    <td className="py-3 pr-4">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => toggleOrderingFeature(r)}
+                        aria-label={`${r.enable_ordering ? "Desativar" : "Ativar"} Pedido Online (Opção 2) para ${r.name}`}
+                      >
+                        {r.enable_ordering ? "Ativo" : "Inativo"}
                       </Button>
                     </td>
                     <td className="py-3">
