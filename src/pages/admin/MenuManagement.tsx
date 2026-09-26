@@ -2,60 +2,19 @@ import { useState, useEffect, useRef } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import { Plus, Trash2, Edit2, ArrowLeft, GripVertical } from "lucide-react";
+import { Plus, Trash2, Edit2, ArrowLeft, ArrowUp, ArrowDown, Settings } from "lucide-react";
 import { Link } from "react-router-dom";
 import type { Database } from "@/integrations/supabase/types";
 import ImageUpload from "@/components/admin/ImageUpload";
 import IngredientImageUpload from "@/components/admin/IngredientImageUpload";
-import {
-  DndContext,
-  closestCenter,
-  KeyboardSensor,
-  PointerSensor,
-  useSensor,
-  useSensors,
-  type DragEndEvent,
-  type Announcements,
-} from "@dnd-kit/core";
-import {
-  arrayMove,
-  SortableContext,
-  sortableKeyboardCoordinates,
-  useSortable,
-  verticalListSortingStrategy,
-} from "@dnd-kit/sortable";
-import { CSS } from "@dnd-kit/utilities";
-import { restrictToVerticalAxis, restrictToParentElement } from "@dnd-kit/modifiers";
+import { CategoryManagerModal } from "@/components/admin/CategoryManagerModal";
 import { toast } from "sonner";
 import { AccessibilityToolbar } from "@/components/AccessibilityToolbar";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 
 type MenuItem = Database["public"]["Tables"]["menu_items"]["Row"];
 type MenuInsert = Database["public"]["Tables"]["menu_items"]["Insert"];
-type MenuCategory = Database["public"]["Enums"]["menu_category"];
-
-const categories: { value: MenuCategory; label: string }[] = [
-  { value: "cafe_espresso", label: "Café Espresso" },
-  { value: "chocolate", label: "Chocolate" },
-  { value: "sobremesa", label: "Sobremesa" },
-  { value: "empanada_salgado", label: "Empanada e Salgado" },
-  { value: "metodos_extracao", label: "Métodos de Extração" },
-  { value: "paulistinha", label: "Paulistinha" },
-  { value: "waffles", label: "Waffles" },
-  { value: "almoco", label: "Almoço" },
-  { value: "espresso_gelado", label: "Espresso Gelado" },
-  { value: "chocolate_gelado", label: "Chocolate Gelado" },
-  { value: "bebida", label: "Bebidas" },
-  { value: "drinks_sem_alcool", label: "Drinks sem Álcool" },
-  { value: "chai_latte", label: "Chai-Latte" },
-  { value: "chas", label: "Chás" },
-  { value: "drinks_especiais", label: "Drinks Especiais" },
-  { value: "cervejas", label: "Cervejas" },
-  { value: "entrada", label: "Entrada" },
-  { value: "prato", label: "Prato" },
-  { value: "acompanhamento", label: "Acompanhamento" },
-  { value: "outros", label: "Outros" },
-];
+type RestaurantCategory = Database["public"]["Tables"]["restaurant_categories"]["Row"];
 
 const allergenOptions = [
   { value: "gluten", label: "Glúten" },
@@ -72,7 +31,7 @@ const emptyForm: Omit<MenuInsert, "id"> = {
   name: "",
   description: "",
   price: 0,
-  category: "prato",
+  category_id: null,
   ingredients: "",
   allergens: [],
   image_url: "",
@@ -93,12 +52,19 @@ function buildAutoAudioText(form: Omit<MenuInsert, "id">) {
   return parts.join(". ") + ".";
 }
 
+function findCategoryByName(categories: RestaurantCategory[] | undefined, name: string) {
+  const trimmed = name.trim().toLowerCase();
+  if (!trimmed) return undefined;
+  return (categories || []).find((c) => c.name.trim().toLowerCase() === trimmed);
+}
+
 export default function MenuManagement() {
   useDocumentTitle("Gestão do cardápio — InteraMenu");
   const queryClient = useQueryClient();
   const { restaurantId, loading: authLoading } = useAuth();
   const formRef = useRef<HTMLDivElement>(null);
   const nameInputRef = useRef<HTMLInputElement>(null);
+  const manageCategoriesButtonRef = useRef<HTMLButtonElement>(null);
   const DRAFT_KEY = "interamenu_menu_item_draft";
   const [form, setForm] = useState<Omit<MenuInsert, "id">>(() => {
     try {
@@ -108,6 +74,15 @@ export default function MenuManagement() {
       // ignora rascunho corrompido
     }
     return emptyForm;
+  });
+  const [categoryText, setCategoryText] = useState<string>(() => {
+    try {
+      const saved = sessionStorage.getItem(DRAFT_KEY);
+      if (saved) return JSON.parse(saved).categoryText ?? "";
+    } catch {
+      // ignora
+    }
+    return "";
   });
   const [editingId, setEditingId] = useState<string | null>(() => {
     try {
@@ -129,6 +104,7 @@ export default function MenuManagement() {
   const [customAllergen, setCustomAllergen] = useState("");
   const [formErrors, setFormErrors] = useState<{ name?: string; price?: string }>({});
   const [statusMessage, setStatusMessage] = useState("");
+  const [manageCategoriesOpen, setManageCategoriesOpen] = useState(false);
 
   // Mantém um rascunho do formulário salvo, para não perder o que foi
   // digitado caso a página recarregue (ex: ao voltar de uma troca de app
@@ -136,14 +112,28 @@ export default function MenuManagement() {
   useEffect(() => {
     try {
       if (showForm) {
-        sessionStorage.setItem(DRAFT_KEY, JSON.stringify({ form, editingId }));
+        sessionStorage.setItem(DRAFT_KEY, JSON.stringify({ form, categoryText, editingId }));
       } else {
         sessionStorage.removeItem(DRAFT_KEY);
       }
     } catch {
       // armazenamento indisponível — segue sem rascunho, sem quebrar a tela
     }
-  }, [form, editingId, showForm]);
+  }, [form, categoryText, editingId, showForm]);
+
+  const { data: categories } = useQuery({
+    queryKey: ["restaurant_categories", restaurantId],
+    enabled: !!restaurantId,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("restaurant_categories")
+        .select("*")
+        .eq("restaurant_id", restaurantId)
+        .order("sort_order");
+      if (error) throw error;
+      return data;
+    },
+  });
 
   const { data: items, isLoading } = useQuery({
     queryKey: ["admin_menu_items", restaurantId],
@@ -159,14 +149,16 @@ export default function MenuManagement() {
     },
   });
 
-  // Auto-fill sort_order when category changes (new items only)
+  // Auto-fill sort_order when the category changes (new items only)
   useEffect(() => {
     if (editingId) return;
     if (!items) return;
-    const sameCat = items.filter((i) => i.category === form.category);
+    const matched = findCategoryByName(categories, categoryText);
+    const sameCat = matched ? items.filter((i) => i.category_id === matched.id) : [];
     const maxOrder = sameCat.length > 0 ? Math.max(...sameCat.map((i) => i.sort_order)) : -1;
     setForm((prev) => ({ ...prev, sort_order: maxOrder + 1 }));
-  }, [form.category, items, editingId]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [categoryText, items, editingId]);
 
   // Auto-fill audio_text
   useEffect(() => {
@@ -176,23 +168,49 @@ export default function MenuManagement() {
 
   const saveMutation = useMutation({
     mutationFn: async (data: Omit<MenuInsert, "id">) => {
+      if (!restaurantId) {
+        throw new Error(
+          "Ainda estamos carregando os dados da sua conta. Aguarde alguns segundos e tente salvar de novo."
+        );
+      }
+
+      // Resolve a categoria digitada: reaproveita uma já existente (mesmo
+      // nome, sem diferenciar maiúsculas/minúsculas) ou cria uma nova.
+      let categoryId: string | null = null;
+      const trimmedCategory = categoryText.trim();
+      if (trimmedCategory) {
+        const existing = findCategoryByName(categories, trimmedCategory);
+        if (existing) {
+          categoryId = existing.id;
+        } else {
+          const maxOrder =
+            categories && categories.length > 0 ? Math.max(...categories.map((c) => c.sort_order)) : -1;
+          const { data: created, error: createErr } = await supabase
+            .from("restaurant_categories")
+            .insert({ name: trimmedCategory, restaurant_id: restaurantId, sort_order: maxOrder + 1 })
+            .select()
+            .single();
+          if (createErr) throw createErr;
+          categoryId = created.id;
+        }
+      }
+
+      const payload = { ...data, category_id: categoryId };
+
       if (editingId) {
-        const { error } = await supabase.from("menu_items").update(data).eq("id", editingId);
+        const { error } = await supabase.from("menu_items").update(payload).eq("id", editingId);
         if (error) throw error;
       } else {
-        if (!restaurantId) {
-          throw new Error(
-            "Ainda estamos carregando os dados da sua conta. Aguarde alguns segundos e tente salvar de novo."
-          );
-        }
-        const { error } = await supabase.from("menu_items").insert({ ...data, restaurant_id: restaurantId });
+        const { error } = await supabase.from("menu_items").insert({ ...payload, restaurant_id: restaurantId });
         if (error) throw error;
       }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin_menu_items"] });
+      queryClient.invalidateQueries({ queryKey: ["restaurant_categories"] });
       setStatusMessage(editingId ? "Item do cardápio atualizado." : "Item do cardápio cadastrado.");
       setForm(emptyForm);
+      setCategoryText("");
       setEditingId(null);
       setShowForm(false);
       setAutoAudio(true);
@@ -210,14 +228,12 @@ export default function MenuManagement() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["admin_menu_items"] }),
   });
 
-  const reorderMutation = useMutation({
-    mutationFn: async (updates: { id: string; sort_order: number }[]) => {
-      // Update each item's sort_order. Run in parallel.
-      const results = await Promise.all(
-        updates.map((u) =>
-          supabase.from("menu_items").update({ sort_order: u.sort_order }).eq("id", u.id)
-        )
-      );
+  const swapMutation = useMutation({
+    mutationFn: async ({ a, b }: { a: { id: string; sort_order: number }; b: { id: string; sort_order: number } }) => {
+      const results = await Promise.all([
+        supabase.from("menu_items").update({ sort_order: b.sort_order }).eq("id", a.id),
+        supabase.from("menu_items").update({ sort_order: a.sort_order }).eq("id", b.id),
+      ]);
       const firstError = results.find((r) => r.error)?.error;
       if (firstError) throw firstError;
     },
@@ -226,11 +242,12 @@ export default function MenuManagement() {
   });
 
   const startEdit = (item: MenuItem) => {
+    const currentCategory = (categories || []).find((c) => c.id === item.category_id);
     setForm({
       name: item.name,
       description: item.description || "",
       price: item.price,
-      category: item.category,
+      category_id: item.category_id,
       ingredients: item.ingredients || "",
       allergens: item.allergens || [],
       image_url: item.image_url || "",
@@ -241,6 +258,7 @@ export default function MenuManagement() {
       is_available: item.is_available,
       sort_order: item.sort_order,
     } as any);
+    setCategoryText(currentCategory?.name || "");
     setEditingId(item.id);
     setAutoAudio(false); // Don't overwrite existing audio text
     setShowForm(true);
@@ -286,10 +304,20 @@ export default function MenuManagement() {
           <h1 className="text-xl font-extrabold text-foreground">Cadastro de Itens</h1>
           <div className="ml-auto flex gap-2">
             <button
+              ref={manageCategoriesButtonRef}
+              type="button"
+              onClick={() => setManageCategoriesOpen(true)}
+              className="flex items-center gap-2 px-4 py-2 rounded-md bg-secondary text-secondary-foreground font-medium text-sm hover:bg-secondary/80 transition-colors"
+            >
+              <Settings className="w-4 h-4" aria-hidden="true" />
+              Gerenciar categorias
+            </button>
+            <button
               onClick={() => {
                 setShowForm(true);
                 setEditingId(null);
                 setForm(emptyForm);
+                setCategoryText("");
                 setAutoAudio(true);
                 requestAnimationFrame(() => {
                   formRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -377,14 +405,24 @@ export default function MenuManagement() {
               </div>
               <div>
                 <label className={labelClass} htmlFor="item-category">Categoria</label>
-                <select
+                <input
                   id="item-category"
                   className={inputClass}
-                  value={form.category}
-                  onChange={(e) => setForm({ ...form, category: e.target.value as MenuCategory })}
-                >
-                  {categories.map((c) => <option key={c.value} value={c.value}>{c.label}</option>)}
-                </select>
+                  list="item-category-options"
+                  placeholder="Digite ou escolha uma categoria"
+                  value={categoryText}
+                  onChange={(e) => setCategoryText(e.target.value)}
+                  aria-describedby="item-category-hint"
+                />
+                <datalist id="item-category-options">
+                  {(categories || []).map((c) => (
+                    <option key={c.id} value={c.name} />
+                  ))}
+                </datalist>
+                <p id="item-category-hint" className="text-xs text-muted-foreground mt-1">
+                  Digite o nome de uma categoria já existente para reaproveitá-la, ou de uma categoria nova
+                  para criá-la automaticamente ao salvar. Deixe em branco para não ter categoria.
+                </p>
               </div>
               <div>
                 <label className={labelClass} htmlFor="item-sort-order">Ordem</label>
@@ -548,7 +586,7 @@ export default function MenuManagement() {
                 </button>
                 <button
                   type="button"
-                  onClick={() => { setShowForm(false); setEditingId(null); setForm(emptyForm); setAutoAudio(true); setFormErrors({}); }}
+                  onClick={() => { setShowForm(false); setEditingId(null); setForm(emptyForm); setCategoryText(""); setAutoAudio(true); setFormErrors({}); }}
                   aria-label="Cancelar cadastro de item de cardápio"
                   className="px-6 py-2.5 rounded-md bg-secondary text-secondary-foreground font-medium text-sm"
                 >
@@ -562,40 +600,56 @@ export default function MenuManagement() {
         {isLoading ? (
           <div className="space-y-3">{[1,2,3].map(i => <div key={i} className="h-16 bg-muted rounded-lg animate-pulse" />)}</div>
         ) : (
-          <SortableMenuList
+          <MenuItemList
             items={items || []}
-            onReorder={(updates) => reorderMutation.mutate(updates)}
+            categories={categories || []}
+            onSwap={(a, b) => swapMutation.mutate({ a, b })}
             onEdit={startEdit}
             onDelete={(id) => deleteMutation.mutate(id)}
           />
         )}
       </main>
       <AccessibilityToolbar />
+
+      <CategoryManagerModal
+        open={manageCategoriesOpen}
+        onClose={() => setManageCategoriesOpen(false)}
+        restaurantId={restaurantId}
+        triggerRef={manageCategoriesButtonRef}
+      />
     </div>
   );
 }
 
-// ============= Sortable list with category groups =============
+// ============= List with category groups, reordered via up/down buttons =============
 
-interface SortableMenuListProps {
+interface MenuItemListProps {
   items: MenuItem[];
-  onReorder: (updates: { id: string; sort_order: number }[]) => void;
+  categories: RestaurantCategory[];
+  onSwap: (a: { id: string; sort_order: number }, b: { id: string; sort_order: number }) => void;
   onEdit: (item: MenuItem) => void;
   onDelete: (id: string) => void;
 }
 
-function SortableMenuList({ items, onReorder, onEdit, onDelete }: SortableMenuListProps) {
-  // Group items by category preserving the categories order defined above.
+function MenuItemList({ items, categories, onSwap, onEdit, onDelete }: MenuItemListProps) {
   const grouped = categories
     .map((cat) => ({
-      category: cat,
-      items: items
-        .filter((i) => i.category === cat.value)
-        .sort((a, b) => a.sort_order - b.sort_order),
+      id: cat.id,
+      label: cat.name,
+      items: items.filter((i) => i.category_id === cat.id).sort((a, b) => a.sort_order - b.sort_order),
     }))
     .filter((g) => g.items.length > 0);
 
-  if (grouped.length === 0) {
+  const semCategoria = items
+    .filter((i) => !i.category_id || !categories.some((c) => c.id === i.category_id))
+    .sort((a, b) => a.sort_order - b.sort_order);
+
+  const allGroups = [
+    ...grouped,
+    ...(semCategoria.length > 0 ? [{ id: "sem-categoria", label: "Sem categoria", items: semCategoria }] : []),
+  ];
+
+  if (allGroups.length === 0) {
     return (
       <p className="text-sm text-muted-foreground text-center py-8">
         Nenhum item cadastrado ainda.
@@ -605,150 +659,83 @@ function SortableMenuList({ items, onReorder, onEdit, onDelete }: SortableMenuLi
 
   return (
     <div className="space-y-8">
-      {grouped.map((group) => (
-        <CategoryGroup
-          key={group.category.value}
-          categoryLabel={group.category.label}
-          items={group.items}
-          onReorder={onReorder}
-          onEdit={onEdit}
-          onDelete={onDelete}
-        />
+      {allGroups.map((group) => (
+        <ItemGroup key={group.id} categoryLabel={group.label} items={group.items} onSwap={onSwap} onEdit={onEdit} onDelete={onDelete} />
       ))}
     </div>
   );
 }
 
-interface CategoryGroupProps {
+interface ItemGroupProps {
   categoryLabel: string;
   items: MenuItem[];
-  onReorder: (updates: { id: string; sort_order: number }[]) => void;
+  onSwap: (a: { id: string; sort_order: number }, b: { id: string; sort_order: number }) => void;
   onEdit: (item: MenuItem) => void;
   onDelete: (id: string) => void;
 }
 
-function CategoryGroup({ categoryLabel, items, onReorder, onEdit, onDelete }: CategoryGroupProps) {
-  const [localItems, setLocalItems] = useState(items);
-
-  // Sync when external items change (after refetch).
-  useEffect(() => {
-    setLocalItems(items);
-  }, [items]);
-
-  const sensors = useSensors(
-    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
-    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
-  );
-
-  const announcements: Announcements = {
-    onDragStart({ active }) {
-      const item = localItems.find((i) => i.id === active.id);
-      return `Item ${item?.name ?? ""} selecionado para mover. Use as setas para cima e para baixo para reordenar e a tecla espaço para confirmar.`;
-    },
-    onDragOver({ active, over }) {
-      if (!over) return;
-      const activeItem = localItems.find((i) => i.id === active.id);
-      const overIndex = localItems.findIndex((i) => i.id === over.id);
-      return `Item ${activeItem?.name ?? ""} está sobre a posição ${overIndex + 1} de ${localItems.length}.`;
-    },
-    onDragEnd({ active, over }) {
-      const activeItem = localItems.find((i) => i.id === active.id);
-      if (!over) {
-        return `Movimentação de ${activeItem?.name ?? ""} cancelada.`;
-      }
-      const overIndex = localItems.findIndex((i) => i.id === over.id);
-      return `Item ${activeItem?.name ?? ""} movido para a posição ${overIndex + 1} de ${localItems.length}.`;
-    },
-    onDragCancel({ active }) {
-      const activeItem = localItems.find((i) => i.id === active.id);
-      return `Movimentação de ${activeItem?.name ?? ""} cancelada.`;
-    },
-  };
-
-  const handleDragEnd = (event: DragEndEvent) => {
-    const { active, over } = event;
-    if (!over || active.id === over.id) return;
-    const oldIndex = localItems.findIndex((i) => i.id === active.id);
-    const newIndex = localItems.findIndex((i) => i.id === over.id);
-    if (oldIndex === -1 || newIndex === -1) return;
-    const reordered = arrayMove(localItems, oldIndex, newIndex);
-    setLocalItems(reordered);
-    const updates = reordered.map((it, idx) => ({ id: it.id, sort_order: idx }));
-    onReorder(updates);
-  };
-
+function ItemGroup({ categoryLabel, items, onSwap, onEdit, onDelete }: ItemGroupProps) {
   const headingId = `categoria-${categoryLabel.replace(/\s+/g, "-").toLowerCase()}`;
 
   return (
     <section aria-labelledby={headingId}>
-      <h2
-        id={headingId}
-        className="text-lg font-extrabold text-foreground mb-3 pb-2 border-b border-border"
-      >
+      <h2 id={headingId} className="text-lg font-extrabold text-foreground mb-3 pb-2 border-b border-border">
         {categoryLabel}
         <span className="ml-2 text-xs font-normal text-muted-foreground">
           ({items.length} {items.length === 1 ? "item" : "itens"})
         </span>
       </h2>
-      <DndContext
-        sensors={sensors}
-        collisionDetection={closestCenter}
-        onDragEnd={handleDragEnd}
-        modifiers={[restrictToVerticalAxis, restrictToParentElement]}
-        accessibility={{ announcements }}
-      >
-        <SortableContext items={localItems.map((i) => i.id)} strategy={verticalListSortingStrategy}>
-          <ul className="space-y-2" aria-label={`Itens da categoria ${categoryLabel}, arrastáveis`}>
-            {localItems.map((item) => (
-              <SortableItem
-                key={item.id}
-                item={item}
-                onEdit={onEdit}
-                onDelete={onDelete}
-              />
-            ))}
-          </ul>
-        </SortableContext>
-      </DndContext>
+      <ul className="space-y-2" aria-label={`Itens da categoria ${categoryLabel}`}>
+        {items.map((item, index) => (
+          <MenuItemRow
+            key={item.id}
+            item={item}
+            isFirst={index === 0}
+            isLast={index === items.length - 1}
+            onMoveUp={() => onSwap({ id: item.id, sort_order: item.sort_order }, { id: items[index - 1].id, sort_order: items[index - 1].sort_order })}
+            onMoveDown={() => onSwap({ id: item.id, sort_order: item.sort_order }, { id: items[index + 1].id, sort_order: items[index + 1].sort_order })}
+            onEdit={onEdit}
+            onDelete={onDelete}
+          />
+        ))}
+      </ul>
     </section>
   );
 }
 
-interface SortableItemProps {
+interface MenuItemRowProps {
   item: MenuItem;
+  isFirst: boolean;
+  isLast: boolean;
+  onMoveUp: () => void;
+  onMoveDown: () => void;
   onEdit: (item: MenuItem) => void;
   onDelete: (id: string) => void;
 }
 
-function SortableItem({ item, onEdit, onDelete }: SortableItemProps) {
-  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
-    id: item.id,
-  });
-
-  const style: React.CSSProperties = {
-    transform: CSS.Transform.toString(transform),
-    transition,
-    opacity: isDragging ? 0.6 : 1,
-    zIndex: isDragging ? 10 : "auto",
-  };
-
+function MenuItemRow({ item, isFirst, isLast, onMoveUp, onMoveDown, onEdit, onDelete }: MenuItemRowProps) {
   return (
-    <li
-      ref={setNodeRef}
-      style={style}
-      className={`flex items-center gap-3 p-4 bg-card border border-border rounded-lg ${
-        isDragging ? "shadow-lg ring-2 ring-primary" : ""
-      }`}
-    >
-      <button
-        type="button"
-        {...attributes}
-        {...listeners}
-        className="p-2 -m-2 rounded-md text-muted-foreground hover:bg-secondary hover:text-foreground cursor-grab active:cursor-grabbing focus:outline-none focus-visible:ring-2 focus-visible:ring-ring touch-none"
-        aria-label={`Mover ${item.name}. Pressione espaço para selecionar e use as setas para reordenar.`}
-      >
-        <GripVertical className="w-5 h-5" aria-hidden="true" />
-      </button>
+    <li className="flex items-center gap-3 p-4 bg-card border border-border rounded-lg">
+      <div className="flex flex-col gap-0.5 shrink-0">
+        <button
+          type="button"
+          onClick={onMoveUp}
+          disabled={isFirst}
+          aria-label={`Mover ${item.name} para cima`}
+          className="p-1 rounded hover:bg-secondary transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+        >
+          <ArrowUp className="w-4 h-4" aria-hidden="true" />
+        </button>
+        <button
+          type="button"
+          onClick={onMoveDown}
+          disabled={isLast}
+          aria-label={`Mover ${item.name} para baixo`}
+          className="p-1 rounded hover:bg-secondary transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+        >
+          <ArrowDown className="w-4 h-4" aria-hidden="true" />
+        </button>
+      </div>
 
       {item.image_url && (
         <img
