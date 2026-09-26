@@ -12,9 +12,11 @@ const DEFAULT_COLOR = "#3a4a3f";
 
 export default function BrandSettings() {
   useDocumentTitle("Identidade Visual — InteraMenu");
-  const { restaurantId, refreshRestaurantProfile } = useAuth();
+  const { restaurantId, restaurantEnableOrdering, refreshRestaurantProfile } = useAuth();
   const [color, setColor] = useState(DEFAULT_COLOR);
   const [logoUrl, setLogoUrl] = useState<string>("");
+  const [serviceFeePercent, setServiceFeePercent] = useState<string>("10");
+  const [serviceFeeError, setServiceFeeError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [uploadingLogo, setUploadingLogo] = useState(false);
@@ -26,12 +28,15 @@ export default function BrandSettings() {
     (async () => {
       const { data, error } = await supabase
         .from("restaurants")
-        .select("primary_color, logo_url")
+        .select("primary_color, logo_url, service_fee_percent")
         .eq("id", restaurantId)
         .single();
       if (!error && data) {
         setColor((data as any).primary_color || DEFAULT_COLOR);
         setLogoUrl((data as any).logo_url || "");
+        setServiceFeePercent(
+          (data as any).service_fee_percent != null ? String((data as any).service_fee_percent) : "10"
+        );
       }
       setLoading(false);
     })();
@@ -49,10 +54,23 @@ export default function BrandSettings() {
       return;
     }
     setColorError(null);
+
+    const updatePayload: Record<string, unknown> = { primary_color: color, logo_url: logoUrl || null };
+
+    if (restaurantEnableOrdering) {
+      const feeValue = Number(serviceFeePercent.replace(",", "."));
+      if (serviceFeePercent.trim() === "" || Number.isNaN(feeValue) || feeValue < 0 || feeValue > 100) {
+        setServiceFeeError("Digite uma porcentagem válida entre 0 e 100.");
+        return;
+      }
+      setServiceFeeError(null);
+      updatePayload.service_fee_percent = feeValue;
+    }
+
     setSaving(true);
     const { error } = await supabase
       .from("restaurants")
-      .update({ primary_color: color, logo_url: logoUrl || null } as any)
+      .update(updatePayload as any)
       .eq("id", restaurantId);
 
     if (error) {
@@ -61,8 +79,8 @@ export default function BrandSettings() {
       return;
     }
 
-    // Atualiza a cor/logo em todo o sistema imediatamente (menu do admin,
-    // cardápio, etc.), sem precisar sair e entrar de novo.
+    // Atualiza a cor/logo/taxa em todo o sistema imediatamente (menu do
+    // admin, cardápio, etc.), sem precisar sair e entrar de novo.
     await refreshRestaurantProfile();
     setSaving(false);
     toast.success("Identidade visual salva! A mudança já está valendo em todo o sistema.");
@@ -220,6 +238,46 @@ export default function BrandSettings() {
                   {logoUrl ? "Substituir logo" : "Enviar logo (PNG, JPG ou SVG · até 2MB)"}
                 </button>
               </div>
+            </section>
+
+            <section aria-labelledby="pedido-online-heading">
+              <h2 id="pedido-online-heading" className="mb-1 text-lg font-bold text-foreground">Pedido Online</h2>
+              {restaurantEnableOrdering ? (
+                <>
+                  <p className="mb-3 text-sm text-muted-foreground" id="service-fee-hint">
+                    Porcentagem de serviço aplicada automaticamente ao fechar a conta da mesa.
+                  </p>
+                  <label htmlFor="service-fee-percent" className="mb-1 block text-sm font-medium text-foreground">
+                    Taxa de serviço (%)
+                  </label>
+                  <input
+                    id="service-fee-percent"
+                    type="number"
+                    inputMode="decimal"
+                    min={0}
+                    max={100}
+                    step={0.5}
+                    value={serviceFeePercent}
+                    onChange={(e) => {
+                      setServiceFeePercent(e.target.value);
+                      if (serviceFeeError) setServiceFeeError(null);
+                    }}
+                    aria-describedby={serviceFeeError ? "service-fee-error" : "service-fee-hint"}
+                    aria-invalid={!!serviceFeeError}
+                    className="w-32 rounded-md border border-input bg-background px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                  />
+                  {serviceFeeError && (
+                    <p id="service-fee-error" role="alert" className="mt-2 text-sm text-destructive">
+                      {serviceFeeError}
+                    </p>
+                  )}
+                </>
+              ) : (
+                <p className="text-sm text-muted-foreground">
+                  O Pedido Online ainda não está ativado para o seu restaurante. Fale com o suporte para ativar
+                  esse recurso e poder configurar a taxa de serviço aplicada ao fechar a conta da mesa.
+                </p>
+              )}
             </section>
 
             <section aria-label="Pré-visualização">
