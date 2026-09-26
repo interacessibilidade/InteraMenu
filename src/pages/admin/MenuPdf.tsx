@@ -144,7 +144,9 @@ export default function MenuPdf() {
           </article>
         )}
       </main>
-      <AccessibilityToolbar />
+      <div className="print:hidden">
+        <AccessibilityToolbar />
+      </div>
     </div>
   );
 }
