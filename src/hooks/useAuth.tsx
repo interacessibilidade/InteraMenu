@@ -16,6 +16,7 @@ interface AuthContextValue {
   loading: boolean;
   isSuperAdmin: boolean;
   signOut: () => Promise<void>;
+  refreshRestaurantProfile: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
@@ -62,8 +63,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
   }, []);
 
-  async function loadRole(userId: string) {
-    setLoading(true);
+  async function applyRoleData(userId: string) {
     const { data, error } = await supabase
       .from("user_roles")
       .select("role, restaurant_id, restaurants(slug, name, logo_url, primary_color)")
@@ -85,11 +85,28 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setRestaurantLogoUrl(null);
       setRestaurantPrimaryColor(null);
     }
+  }
+
+  async function loadRole(userId: string) {
+    setLoading(true);
+    await applyRoleData(userId);
     setLoading(false);
   }
 
   async function signOut() {
     await supabase.auth.signOut();
+  }
+
+  // Recarrega apenas os dados do restaurante (nome, logo, cor) sem esperar
+  // um novo login. Usado logo após salvar a Identidade Visual, para que a
+  // mudança apareça imediatamente em todo o sistema (menu, gestão do
+  // cardápio, etc.), em vez de só depois de sair e entrar de novo.
+  async function refreshRestaurantProfile() {
+    if (!session?.user) return;
+    // Não usa loadRole/setLoading aqui de propósito: isso evitaria que a tela
+    // toda mostrasse "Carregando..." de novo só porque a identidade visual
+    // foi salva.
+    await applyRoleData(session.user.id);
   }
 
   const value: AuthContextValue = {
@@ -104,6 +121,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     loading,
     isSuperAdmin: role === "super_admin",
     signOut,
+    refreshRestaurantProfile,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
