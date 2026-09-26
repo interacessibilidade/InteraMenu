@@ -3,6 +3,7 @@ import { Play, Pause, ImageIcon, AlertTriangle, X } from "lucide-react";
 import type { Database } from "@/integrations/supabase/types";
 import { useLanguage, getAudioLang, type Language } from "@/hooks/useLanguage";
 import { useSpeechSynthesis } from "@/hooks/useSpeechSynthesis";
+import { AddToOrderControl } from "@/components/ordering/AddToOrderControl";
 
 type MenuItem = Database["public"]["Tables"]["menu_items"]["Row"];
 
@@ -27,9 +28,11 @@ function buildAudioText(item: MenuItem, language: Language) {
 export function MenuItemCard({
   item,
   showIngredientsButton = true,
+  orderingEnabled = false,
 }: {
   item: MenuItem;
   showIngredientsButton?: boolean;
+  orderingEnabled?: boolean;
 }) {
   const { t, language } = useLanguage();
   const audioText = buildAudioText(item, language);
@@ -176,6 +179,10 @@ export function MenuItemCard({
               </button>
             )}
           </div>
+
+          {orderingEnabled && (
+            <AddToOrderControl menuItemId={item.id} itemName={item.name} price={Number(item.price)} />
+          )}
         </div>
       </article>
 
