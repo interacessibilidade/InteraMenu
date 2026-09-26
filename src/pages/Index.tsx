@@ -16,6 +16,8 @@ import { WriteToWaiterModal } from "@/components/WriteToWaiterModal";
 import { useMenuTranslation } from "@/hooks/useMenuTranslation";
 import { useTableName } from "@/hooks/useTableName";
 import { restaurantThemeStyle } from "@/lib/restaurantTheme";
+import { CartProvider } from "@/hooks/useCart";
+import { OrderingPanel } from "@/components/ordering/OrderingPanel";
 
 export default function Index() {
   const { restaurantSlug } = useParams();
@@ -34,7 +36,7 @@ export default function Index() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("restaurants")
-        .select("id, name, status, primary_color, logo_url, show_ingredients_button")
+        .select("id, name, status, primary_color, logo_url, show_ingredients_button, enable_ordering")
         .eq("slug", restaurantSlug || "cafe-infinito-olhar")
         .maybeSingle();
       if (error) throw error;
@@ -103,6 +105,9 @@ export default function Index() {
     );
   }
 
+  const orderingEnabled = Boolean((restaurant as any)?.enable_ordering);
+  const canOrder = orderingEnabled && !!restaurantId && !!tableNumber;
+
   const grouped = (categories || [])
     .map((cat) => ({
       category: cat.id,
@@ -112,11 +117,11 @@ export default function Index() {
     .filter((g) => g.items.length > 0)
     .filter((g) => filter === "all" || g.category === filter);
 
-  return (
+  const pageContent = (
     <div
       key={language}
       style={restaurantThemeStyle((restaurant as any)?.primary_color)}
-      className="min-h-screen bg-background pb-8"
+      className={`min-h-screen bg-background ${canOrder ? "pb-24" : "pb-8"}`}
       lang={language === "en" ? "en-US" : language === "es" ? "es-ES" : language === "fr" ? "fr-FR" : "pt-BR"}
     >
       {/* Header */}
@@ -209,6 +214,7 @@ export default function Index() {
                       key={item.id}
                       item={item}
                       showIngredientsButton={(restaurant as any)?.show_ingredients_button ?? true}
+                      orderingEnabled={canOrder}
                     />
                   ))}
                 </div>
@@ -216,11 +222,21 @@ export default function Index() {
             ))}
           </div>
         )}
+
+        {orderingEnabled && !tableNumber && (
+          <p role="status" className="mt-8 text-center text-sm text-muted-foreground">
+            Para fazer pedidos pelo celular, acesse o cardápio usando o QR Code da sua mesa.
+          </p>
+        )}
       </main>
 
       <AccessibilityToolbar />
       <TutorialVideoModal open={tutorialOpen} onClose={() => setTutorialOpen(false)} />
       <WelcomeModal onWatchVideo={() => setTutorialOpen(true)} />
+
+      {canOrder && <OrderingPanel restaurantId={restaurantId as string} tableNumber={tableNumber as number} />}
     </div>
   );
+
+  return canOrder ? <CartProvider>{pageContent}</CartProvider> : pageContent;
 }
