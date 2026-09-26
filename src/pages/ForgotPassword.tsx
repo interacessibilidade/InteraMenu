@@ -4,8 +4,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 
 export default function ForgotPassword() {
+  useDocumentTitle("Esqueci minha senha — InteraMenu");
   const [email, setEmail] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [sent, setSent] = useState(false);
@@ -35,12 +37,17 @@ export default function ForgotPassword() {
   }
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-background px-4">
+    <main className="flex min-h-screen flex-col items-center justify-center bg-background px-4">
+      <div className="mb-8 flex flex-col items-center gap-3">
+        <img src="/logo-interacessibilidade.png" alt="Interacessibilidade" className="h-10 w-auto" />
+        <div className="h-1 w-16 rounded-full" style={{ backgroundColor: "#AF005F" }} aria-hidden="true" />
+      </div>
+
       <div className="w-full max-w-sm">
-        <h1 className="mb-1 text-center text-2xl font-extrabold text-foreground">
+        <h1 className="mb-1 text-center text-2xl font-extrabold" style={{ color: "#1A1F2C" }}>
           Esqueci minha senha
         </h1>
-        <p className="mb-6 text-center text-sm text-muted-foreground">
+        <p className="mb-6 text-center text-sm text-foreground/80">
           Vamos te enviar um link por e-mail para você criar uma nova senha
         </p>
 
@@ -62,25 +69,36 @@ export default function ForgotPassword() {
                 name="email"
                 type="email"
                 autoComplete="email"
+                placeholder="Digite o e-mail para recuperar a senha"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 aria-required="true"
                 aria-invalid={!!error}
+                aria-describedby="forgot-email-hint"
               />
+              <span id="forgot-email-hint" className="sr-only">
+                Digite o e-mail cadastrado da sua conta para receber o link de redefinição de senha
+              </span>
             </div>
 
-            <div aria-live="polite" className="mb-4 min-h-[1.25rem] text-sm text-destructive">
+            <div role="alert" className="mb-4 min-h-[1.25rem] text-sm text-destructive">
               {error}
             </div>
 
-            <Button type="submit" className="w-full" disabled={submitting}>
+            <Button
+              type="submit"
+              className="w-full"
+              style={{ backgroundColor: "#AF005F" }}
+              disabled={submitting}
+              aria-label="Clique para enviar o link de redefinição de senha por e-mail"
+            >
               {submitting ? "Enviando..." : "Enviar link de redefinição"}
             </Button>
           </form>
         )}
 
-        <p className="mt-6 text-center text-sm text-muted-foreground">
-          <Link to="/login" className="font-medium text-primary underline-offset-4 hover:underline">
+        <p className="mt-6 text-center text-sm text-foreground/80">
+          <Link to="/login" className="font-medium underline-offset-4 hover:underline" style={{ color: "#AF005F" }}>
             Voltar para o login
           </Link>
         </p>
