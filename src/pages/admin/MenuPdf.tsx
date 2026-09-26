@@ -11,38 +11,35 @@ interface MenuItemRow {
   name: string;
   description: string | null;
   price: number;
-  category: string;
+  category_id: string | null;
   ingredients: string | null;
   allergens: string[] | null;
   sort_order: number;
 }
 
-const categoryLabels: Record<string, string> = {
-  cafe_espresso: "Café Espresso",
-  chocolate: "Chocolate",
-  sobremesa: "Sobremesa",
-  empanada_salgado: "Empanada / Salgado",
-  metodos_extracao: "Métodos de Extração",
-  paulistinha: "Paulistinha",
-  waffles: "Waffles",
-  almoco: "Almoço",
-  espresso_gelado: "Espresso Gelado",
-  chocolate_gelado: "Chocolate Gelado",
-  bebidas: "Bebidas",
-  drinks_sem_alcool: "Drinks Sem Álcool",
-  chai_latte: "Chai Latte",
-  chas: "Chás",
-  drinks_especiais: "Drinks Especiais",
-  cervejas: "Cervejas",
-  prato: "Prato",
-  entrada: "Entrada",
-  acompanhamento: "Acompanhamento",
-  outros: "Outros",
-};
+interface CategoryRow {
+  id: string;
+  name: string;
+  sort_order: number;
+}
 
 export default function MenuPdf() {
   useDocumentTitle("Cardápio em PDF — InteraMenu");
   const { restaurantId, restaurantName } = useAuth();
+
+  const { data: categories } = useQuery({
+    queryKey: ["restaurant_categories_pdf", restaurantId],
+    enabled: !!restaurantId,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("restaurant_categories")
+        .select("id, name, sort_order")
+        .eq("restaurant_id", restaurantId as string)
+        .order("sort_order");
+      if (error) throw error;
+      return data as CategoryRow[];
+    },
+  });
 
   const { data: items, isLoading } = useQuery({
     queryKey: ["menu_pdf", restaurantId],
@@ -50,20 +47,28 @@ export default function MenuPdf() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("menu_items")
-        .select("id, name, description, price, category, ingredients, allergens, sort_order")
+        .select("id, name, description, price, category_id, ingredients, allergens, sort_order")
         .eq("restaurant_id", restaurantId as string)
         .eq("is_available", true)
-        .order("category")
         .order("sort_order");
       if (error) throw error;
       return data as MenuItemRow[];
     },
   });
 
-  const grouped = (items || []).reduce<Record<string, MenuItemRow[]>>((acc, item) => {
-    (acc[item.category] ||= []).push(item);
-    return acc;
-  }, {});
+  const grouped = (categories || [])
+    .map((cat) => ({
+      id: cat.id,
+      name: cat.name,
+      items: (items || [])
+        .filter((i) => i.category_id === cat.id)
+        .sort((a, b) => a.sort_order - b.sort_order),
+    }))
+    .filter((g) => g.items.length > 0);
+
+  const semCategoria = (items || [])
+    .filter((i) => !i.category_id || !(categories || []).some((c) => c.id === i.category_id))
+    .sort((a, b) => a.sort_order - b.sort_order);
 
   const handlePrint = () => window.print();
 
@@ -102,38 +107,40 @@ export default function MenuPdf() {
             </h1>
             <p className="text-muted-foreground mb-8">Cardápio completo</p>
 
-            {Object.entries(grouped).map(([category, catItems]) => (
-              <section key={category} className="mb-8 break-inside-avoid">
-                <h2 className="text-xl font-bold text-foreground border-b border-border pb-1 mb-3">
-                  {categoryLabels[category] || category}
-                </h2>
-                <ul className="space-y-4 list-none pl-0">
-                  {catItems.map((item) => (
-                    <li key={item.id} className="break-inside-avoid">
-                      <div className="flex items-baseline justify-between gap-3">
-                        <h3 className="font-bold text-foreground">{item.name}</h3>
-                        <span className="font-bold text-foreground whitespace-nowrap">
-                          R$ {Number(item.price).toFixed(2).replace(".", ",")}
-                        </span>
-                      </div>
-                      {item.description && (
-                        <p className="text-sm text-foreground/80">{item.description}</p>
-                      )}
-                      {item.ingredients && (
-                        <p className="text-sm text-muted-foreground">
-                          <strong>Ingredientes:</strong> {item.ingredients}
-                        </p>
-                      )}
-                      {item.allergens && item.allergens.length > 0 && (
-                        <p className="text-sm text-muted-foreground">
-                          <strong>Contém:</strong> {item.allergens.join(", ")}
-                        </p>
-                      )}
-                    </li>
-                  ))}
-                </ul>
-              </section>
-            ))}
+            {[...grouped, ...(semCategoria.length > 0 ? [{ id: "sem-categoria", name: "Sem categoria", items: semCategoria }] : [])].map(
+              (group) => (
+                <section key={group.id} className="mb-8 break-inside-avoid">
+                  <h2 className="text-xl font-bold text-foreground border-b border-border pb-1 mb-3">
+                    {group.name}
+                  </h2>
+                  <ul className="space-y-4 list-none pl-0">
+                    {group.items.map((item) => (
+                      <li key={item.id} className="break-inside-avoid">
+                        <div className="flex items-baseline justify-between gap-3">
+                          <h3 className="font-bold text-foreground">{item.name}</h3>
+                          <span className="font-bold text-foreground whitespace-nowrap">
+                            R$ {Number(item.price).toFixed(2).replace(".", ",")}
+                          </span>
+                        </div>
+                        {item.description && (
+                          <p className="text-sm text-foreground/80">{item.description}</p>
+                        )}
+                        {item.ingredients && (
+                          <p className="text-sm text-muted-foreground">
+                            <strong>Ingredientes:</strong> {item.ingredients}
+                          </p>
+                        )}
+                        {item.allergens && item.allergens.length > 0 && (
+                          <p className="text-sm text-muted-foreground">
+                            <strong>Contém:</strong> {item.allergens.join(", ")}
+                          </p>
+                        )}
+                      </li>
+                    ))}
+                  </ul>
+                </section>
+              )
+            )}
           </article>
         )}
       </main>
