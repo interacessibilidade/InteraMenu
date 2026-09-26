@@ -12,7 +12,7 @@ const DEFAULT_COLOR = "#3a4a3f";
 
 export default function BrandSettings() {
   useDocumentTitle("Identidade Visual — InteraMenu");
-  const { restaurantId } = useAuth();
+  const { restaurantId, refreshRestaurantProfile } = useAuth();
   const [color, setColor] = useState(DEFAULT_COLOR);
   const [logoUrl, setLogoUrl] = useState<string>("");
   const [loading, setLoading] = useState(true);
@@ -54,13 +54,18 @@ export default function BrandSettings() {
       .from("restaurants")
       .update({ primary_color: color, logo_url: logoUrl || null } as any)
       .eq("id", restaurantId);
-    setSaving(false);
 
     if (error) {
+      setSaving(false);
       toast.error("Não foi possível salvar. Tente novamente.");
-    } else {
-      toast.success("Identidade visual salva!");
+      return;
     }
+
+    // Atualiza a cor/logo em todo o sistema imediatamente (menu do admin,
+    // cardápio, etc.), sem precisar sair e entrar de novo.
+    await refreshRestaurantProfile();
+    setSaving(false);
+    toast.success("Identidade visual salva! A mudança já está valendo em todo o sistema.");
   }
 
   async function handleLogoFile(file: File) {
