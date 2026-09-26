@@ -58,6 +58,23 @@ function findCategoryByName(categories: RestaurantCategory[] | undefined, name: 
   return (categories || []).find((c) => c.name.trim().toLowerCase() === trimmed);
 }
 
+// Mesmo "slug" usado no id da seção de cada categoria, tanto para o
+// cabeçalho quanto para o link de "ir direto para" — os dois precisam
+// gerar exatamente o mesmo id para o atalho funcionar.
+function categoryAnchorId(label: string) {
+  return `categoria-${label.replace(/\s+/g, "-").toLowerCase()}`;
+}
+
+// Move o foco e a rolagem até a seção da categoria escolhida, para quem
+// usa teclado ou leitor de tela não precisar ir rolando a página inteira.
+function jumpToCategory(id: string) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  if (!el.hasAttribute("tabindex")) el.setAttribute("tabindex", "-1");
+  el.scrollIntoView({ behavior: "smooth", block: "start" });
+  el.focus({ preventScroll: true });
+}
+
 export default function MenuManagement() {
   useDocumentTitle("Gestão do cardápio — InteraMenu");
   const queryClient = useQueryClient();
@@ -149,17 +166,6 @@ export default function MenuManagement() {
     },
   });
 
-  // Auto-fill sort_order when the category changes (new items only)
-  useEffect(() => {
-    if (editingId) return;
-    if (!items) return;
-    const matched = findCategoryByName(categories, categoryText);
-    const sameCat = matched ? items.filter((i) => i.category_id === matched.id) : [];
-    const maxOrder = sameCat.length > 0 ? Math.max(...sameCat.map((i) => i.sort_order)) : -1;
-    setForm((prev) => ({ ...prev, sort_order: maxOrder + 1 }));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [categoryText, items, editingId]);
-
   // Auto-fill audio_text
   useEffect(() => {
     if (!autoAudio) return;
@@ -195,7 +201,26 @@ export default function MenuManagement() {
         }
       }
 
-      const payload = { ...data, category_id: categoryId };
+      // Calcula a posição do item direto no banco (sempre o fim da
+      // categoria), em vez de confiar num valor calculado no navegador —
+      // assim nunca fica desatualizado nem aparece fora de ordem ou fora
+      // da categoria certa no cardápio em PDF ou no cardápio público.
+      let sortOrder = data.sort_order;
+      if (!editingId) {
+        let orderQuery = supabase
+          .from("menu_items")
+          .select("sort_order")
+          .eq("restaurant_id", restaurantId);
+        orderQuery = categoryId ? orderQuery.eq("category_id", categoryId) : orderQuery.is("category_id", null);
+        const { data: lastRow, error: orderErr } = await orderQuery
+          .order("sort_order", { ascending: false })
+          .limit(1)
+          .maybeSingle();
+        if (orderErr) throw orderErr;
+        sortOrder = lastRow ? lastRow.sort_order + 1 : 0;
+      }
+
+      const payload = { ...data, category_id: categoryId, sort_order: sortOrder };
 
       if (editingId) {
         const { error } = await supabase.from("menu_items").update(payload).eq("id", editingId);
@@ -291,6 +316,23 @@ export default function MenuManagement() {
   const inputClass = "w-full px-3 py-2.5 rounded-md bg-background border border-input text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-ring";
   const labelClass = "block text-sm font-semibold text-foreground mb-1";
 
+  const menuGroups = (() => {
+    const withCategory = (categories || [])
+      .map((cat) => ({
+        id: cat.id,
+        label: cat.name,
+        items: (items || []).filter((i) => i.category_id === cat.id).sort((a, b) => a.sort_order - b.sort_order),
+      }))
+      .filter((g) => g.items.length > 0);
+    const semCategoria = (items || [])
+      .filter((i) => !i.category_id || !(categories || []).some((c) => c.id === i.category_id))
+      .sort((a, b) => a.sort_order - b.sort_order);
+    return [
+      ...withCategory,
+      ...(semCategoria.length > 0 ? [{ id: "sem-categoria", label: "Sem categoria", items: semCategoria }] : []),
+    ];
+  })();
+
   return (
     <div className="min-h-screen bg-background">
       <p role="status" aria-live="polite" className="sr-only">
@@ -334,6 +376,30 @@ export default function MenuManagement() {
       </header>
 
       <main className="container py-6">
+        {menuGroups.length > 0 && (
+          <nav aria-label="Ir direto para uma categoria do cardápio" className="mb-6">
+            <p className="text-sm font-semibold text-foreground mb-2" id="jump-nav-label">
+              Ir direto para uma categoria
+            </p>
+            <ul className="flex flex-wrap gap-2" aria-labelledby="jump-nav-label">
+              {menuGroups.map((g) => (
+                <li key={g.id}>
+                  <a
+                    href={`#${categoryAnchorId(g.label)}`}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      jumpToCategory(categoryAnchorId(g.label));
+                    }}
+                    className="inline-block px-3 py-1.5 rounded-full text-xs font-medium bg-secondary text-secondary-foreground border border-border hover:bg-secondary/80 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  >
+                    {g.label} ({g.items.length})
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </nav>
+        )}
+
         {showForm && (
           <div ref={formRef} className="bg-card border border-border rounded-lg p-6 mb-8 shadow-sm">
             <h2 className="text-lg font-bold text-foreground mb-4">
@@ -421,23 +487,9 @@ export default function MenuManagement() {
                 </datalist>
                 <p id="item-category-hint" className="text-xs text-muted-foreground mt-1">
                   Digite o nome de uma categoria já existente para reaproveitá-la, ou de uma categoria nova
-                  para criá-la automaticamente ao salvar. Deixe em branco para não ter categoria.
+                  para criá-la automaticamente ao salvar. Deixe em branco para não ter categoria. O item novo
+                  entra no fim da categoria — para mudar a posição, use as setas na lista depois de salvar.
                 </p>
-              </div>
-              <div>
-                <label className={labelClass} htmlFor="item-sort-order">Ordem</label>
-                <input
-                  id="item-sort-order"
-                  className={inputClass}
-                  type="number"
-                  placeholder="Digite a posição do item na lista"
-                  value={form.sort_order}
-                  onChange={(e) => setForm({ ...form, sort_order: parseInt(e.target.value) || 0 })}
-                  aria-describedby="item-sort-order-hint"
-                />
-                <span id="item-sort-order-hint" className="sr-only">
-                  Número que define a ordem de exibição deste item dentro da categoria. Menor número aparece primeiro.
-                </span>
               </div>
               <div className="sm:col-span-2">
                 <label className={labelClass} htmlFor="item-description">Descrição</label>
@@ -601,8 +653,7 @@ export default function MenuManagement() {
           <div className="space-y-3">{[1,2,3].map(i => <div key={i} className="h-16 bg-muted rounded-lg animate-pulse" />)}</div>
         ) : (
           <MenuItemList
-            items={items || []}
-            categories={categories || []}
+            groups={menuGroups}
             onSwap={(a, b) => swapMutation.mutate({ a, b })}
             onEdit={startEdit}
             onDelete={(id) => deleteMutation.mutate(id)}
@@ -623,33 +674,21 @@ export default function MenuManagement() {
 
 // ============= List with category groups, reordered via up/down buttons =============
 
-interface MenuItemListProps {
+interface MenuGroup {
+  id: string;
+  label: string;
   items: MenuItem[];
-  categories: RestaurantCategory[];
+}
+
+interface MenuItemListProps {
+  groups: MenuGroup[];
   onSwap: (a: { id: string; sort_order: number }, b: { id: string; sort_order: number }) => void;
   onEdit: (item: MenuItem) => void;
   onDelete: (id: string) => void;
 }
 
-function MenuItemList({ items, categories, onSwap, onEdit, onDelete }: MenuItemListProps) {
-  const grouped = categories
-    .map((cat) => ({
-      id: cat.id,
-      label: cat.name,
-      items: items.filter((i) => i.category_id === cat.id).sort((a, b) => a.sort_order - b.sort_order),
-    }))
-    .filter((g) => g.items.length > 0);
-
-  const semCategoria = items
-    .filter((i) => !i.category_id || !categories.some((c) => c.id === i.category_id))
-    .sort((a, b) => a.sort_order - b.sort_order);
-
-  const allGroups = [
-    ...grouped,
-    ...(semCategoria.length > 0 ? [{ id: "sem-categoria", label: "Sem categoria", items: semCategoria }] : []),
-  ];
-
-  if (allGroups.length === 0) {
+function MenuItemList({ groups, onSwap, onEdit, onDelete }: MenuItemListProps) {
+  if (groups.length === 0) {
     return (
       <p className="text-sm text-muted-foreground text-center py-8">
         Nenhum item cadastrado ainda.
@@ -659,7 +698,7 @@ function MenuItemList({ items, categories, onSwap, onEdit, onDelete }: MenuItemL
 
   return (
     <div className="space-y-8">
-      {allGroups.map((group) => (
+      {groups.map((group) => (
         <ItemGroup key={group.id} categoryLabel={group.label} items={group.items} onSwap={onSwap} onEdit={onEdit} onDelete={onDelete} />
       ))}
     </div>
@@ -675,7 +714,7 @@ interface ItemGroupProps {
 }
 
 function ItemGroup({ categoryLabel, items, onSwap, onEdit, onDelete }: ItemGroupProps) {
-  const headingId = `categoria-${categoryLabel.replace(/\s+/g, "-").toLowerCase()}`;
+  const headingId = categoryAnchorId(categoryLabel);
 
   return (
     <section aria-labelledby={headingId}>
