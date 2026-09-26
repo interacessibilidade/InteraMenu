@@ -6,7 +6,7 @@ import { MenuItemCard } from "@/components/MenuItemCard";
 import { CallWaiterButton } from "@/components/CallWaiterButton";
 import { AccessibilityToolbar } from "@/components/AccessibilityToolbar";
 import { LanguageSelector } from "@/components/LanguageSelector";
-import { CategoryFilter, categoryFilterOrder, type CategoryFilterValue } from "@/components/CategoryFilter";
+import { CategoryFilter, type CategoryFilterValue } from "@/components/CategoryFilter";
 import { UtensilsCrossed, PlayCircle } from "lucide-react";
 import { useLanguage } from "@/hooks/useLanguage";
 import { TutorialVideoModal } from "@/components/TutorialVideoModal";
@@ -15,18 +15,7 @@ import { WelcomeModal } from "@/components/WelcomeModal";
 import { WriteToWaiterModal } from "@/components/WriteToWaiterModal";
 import { useMenuTranslation } from "@/hooks/useMenuTranslation";
 import { useTableName } from "@/hooks/useTableName";
-import type { Database } from "@/integrations/supabase/types";
 import { restaurantThemeStyle } from "@/lib/restaurantTheme";
-
-type MenuCategory = Database["public"]["Enums"]["menu_category"];
-
-const categoryOrder: MenuCategory[] = [
-  ...(categoryFilterOrder as MenuCategory[]),
-  "entrada",
-  "prato",
-  "acompanhamento",
-  "outros",
-];
 
 export default function Index() {
   const { restaurantSlug } = useParams();
@@ -56,6 +45,20 @@ export default function Index() {
   const restaurantId = restaurant?.id ?? null;
   const customTableName = useTableName(tableNumber, restaurantId);
 
+  const { data: categories } = useQuery({
+    queryKey: ["restaurant_categories_public", restaurantId],
+    enabled: !!restaurantId,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("restaurant_categories")
+        .select("id, name, sort_order")
+        .eq("restaurant_id", restaurantId as string)
+        .order("sort_order", { ascending: true });
+      if (error) throw error;
+      return data;
+    },
+  });
+
   const { data: items, isLoading } = useQuery({
     queryKey: ["menu_items", restaurantId],
     enabled: !!restaurantId,
@@ -72,9 +75,6 @@ export default function Index() {
   });
 
   const { getTranslated, translating } = useMenuTranslation(items);
-
-  const allowedCategories: MenuCategory[] | null =
-    filter === "all" ? null : [filter as MenuCategory];
 
   const isFirstFilterRender = useRef(true);
   useEffect(() => {
@@ -103,14 +103,14 @@ export default function Index() {
     );
   }
 
-  const grouped = categoryOrder
+  const grouped = (categories || [])
     .map((cat) => ({
-      category: cat,
-      label: t(`category.${cat}`),
-      items: (items || []).filter((i) => i.category === cat).map(getTranslated),
+      category: cat.id,
+      label: cat.name,
+      items: (items || []).filter((i) => i.category_id === cat.id).map(getTranslated),
     }))
     .filter((g) => g.items.length > 0)
-    .filter((g) => !allowedCategories || allowedCategories.includes(g.category));
+    .filter((g) => filter === "all" || g.category === filter);
 
   return (
     <div
@@ -166,7 +166,12 @@ export default function Index() {
             </span>
             <div className="flex items-center gap-2 flex-1 min-w-0">
               <div className="flex-1 min-w-0">
-                <CategoryFilter selected={filter} onChange={setFilter} showLabel={false} />
+                <CategoryFilter
+                  categories={(categories || []).map((c) => ({ id: c.id, name: c.name }))}
+                  selected={filter}
+                  onChange={setFilter}
+                  showLabel={false}
+                />
               </div>
               <WriteToWaiterModal />
             </div>
